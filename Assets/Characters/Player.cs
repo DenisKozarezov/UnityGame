@@ -14,25 +14,26 @@ public class Player : MonoBehaviour {
     bool OnWall = false;
     void Start()
     {
-
+        this.GetComponent<Rigidbody2D>().gravityScale = JumpScale / 2;
     }
 
     // Update is called once per frame
     void Update()
     {
+        float force = GetComponent<Rigidbody2D>().velocity.magnitude * GetComponent<Rigidbody2D>().mass;
         if (Input.GetKey(KeyCode.D))
         {
-            this.transform.Translate(Vector2.right * MovementSpeed * Time.deltaTime);
+            GetComponent<Rigidbody2D>().AddForce(Vector2.right * MovementSpeed - (Vector2.right * force));
         }
 
         if (Input.GetKey(KeyCode.A))
         {
-            this.transform.Translate(Vector2.left * MovementSpeed * Time.deltaTime);
+            GetComponent<Rigidbody2D>().AddForce(Vector2.left * MovementSpeed - (Vector2.left * force));
         }
 
         if (Input.GetKey(KeyCode.W) && OnGround)
         {
-            this.GetComponent<Rigidbody2D>().AddForce(new Vector2(0, JumpScale * 100));
+            this.GetComponent<Rigidbody2D>().AddForce(Vector2.up * JumpScale * 100);
             OnGround = false;
         }
     }
