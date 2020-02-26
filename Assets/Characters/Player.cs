@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 
 [RequireComponent(typeof(Rigidbody2D))]
@@ -10,25 +11,30 @@ public class Player : MonoBehaviour {
     // Start is called before the first frame update
     public float MovementSpeed = 7f;
     public float JumpScale = 2f;
+    public bool ShowName = false;
+
     bool OnGround = true;
-    bool OnWall = false;
+
     void Start()
     {
         this.GetComponent<Rigidbody2D>().gravityScale = JumpScale / 2;
+
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        float force = GetComponent<Rigidbody2D>().velocity.magnitude * GetComponent<Rigidbody2D>().mass;
+        
+    }
+    void FixedUpdate()
+    {
         if (Input.GetKey(KeyCode.D))
         {
-            GetComponent<Rigidbody2D>().AddForce(Vector2.right * MovementSpeed - (Vector2.right * force));
+            this.transform.Translate(Vector2.right * MovementSpeed * Time.deltaTime);
         }
 
         if (Input.GetKey(KeyCode.A))
         {
-            GetComponent<Rigidbody2D>().AddForce(Vector2.left * MovementSpeed - (Vector2.left * force));
+            this.transform.Translate(Vector2.left * MovementSpeed * Time.deltaTime);
         }
 
         if (Input.GetKey(KeyCode.W) && OnGround)
@@ -40,11 +46,6 @@ public class Player : MonoBehaviour {
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.transform.tag == "Wall")
-        {
-            this.GetComponent<Rigidbody2D>().gravityScale = 0;
-            OnWall = true;
-        }
         if (collision.transform.tag == "Ground")
         {
             OnGround = true;
