@@ -15,10 +15,13 @@ public class Player : MonoBehaviour {
 
     bool OnGround = true;
 
+    private void Awake()
+    {
+        CameraScript.InstanceMoveTo(new Vector3(transform.position.x, Camera.main.gameObject.transform.position.y, Camera.main.gameObject.transform.position.z));
+    }
     void Start()
     {
         this.GetComponent<Rigidbody2D>().gravityScale = JumpScale / 2;
-
     }
 
     private void Update()
@@ -30,11 +33,13 @@ public class Player : MonoBehaviour {
         if (Input.GetKey(KeyCode.D))
         {
             this.transform.Translate(Vector2.right * MovementSpeed * Time.deltaTime);
+            CameraScript.InstanceMoveTo(new Vector3(transform.position.x, Camera.main.gameObject.transform.position.y, Camera.main.gameObject.transform.position.z));
         }
 
         if (Input.GetKey(KeyCode.A))
         {
             this.transform.Translate(Vector2.left * MovementSpeed * Time.deltaTime);
+            CameraScript.InstanceMoveTo(new Vector3(transform.position.x, Camera.main.gameObject.transform.position.y, Camera.main.gameObject.transform.position.z));
         }
 
         if (Input.GetKey(KeyCode.W) && OnGround)
