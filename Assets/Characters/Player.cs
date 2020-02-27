@@ -33,13 +33,13 @@ public class Player : MonoBehaviour {
         if (Input.GetKey(KeyCode.D))
         {
             this.transform.Translate(Vector2.right * MovementSpeed * Time.deltaTime);
-            CameraScript.InstanceMoveTo(new Vector3(transform.position.x, Camera.main.gameObject.transform.position.y, Camera.main.gameObject.transform.position.z));
+            CameraScript.InstanceMoveTo(new Vector2(transform.position.x, Camera.main.gameObject.transform.position.y));
         }
 
         if (Input.GetKey(KeyCode.A))
         {
             this.transform.Translate(Vector2.left * MovementSpeed * Time.deltaTime);
-            CameraScript.InstanceMoveTo(new Vector3(transform.position.x, Camera.main.gameObject.transform.position.y, Camera.main.gameObject.transform.position.z));
+            CameraScript.InstanceMoveTo(new Vector2(transform.position.x, Camera.main.gameObject.transform.position.y));
         }
 
         if (Input.GetKey(KeyCode.W) && OnGround)
