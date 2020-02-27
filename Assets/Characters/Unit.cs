@@ -8,6 +8,7 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Animator))]
 public class Unit : MonoBehaviour
 {
+    /* Статусы юнита */
     public bool Commandable = true;
     public bool Movable = true;
     public bool Invulnerable = false;
@@ -20,7 +21,6 @@ public class Unit : MonoBehaviour
     public float MovementSpeed = 7f;
     private float JumpScale = 4f;
 
-    public GameObject Sprite;
     public Animator Animator;
 
     private void Awake()

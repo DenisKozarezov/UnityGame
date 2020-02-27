@@ -11,25 +11,25 @@ public class Player : MonoBehaviour {
     private void Awake()
     {
         Hero = GetComponent<Unit>();
-        CameraScript.InstanceMoveTo(new Vector3(transform.position.x, Camera.main.gameObject.transform.position.y, Camera.main.gameObject.transform.position.z));
+        CameraScript.AttachToUnit(Hero);
+        CameraScript.InstanceMoveTo(new Vector2(Hero.transform.position.x, CameraScript.attachedY));
     }
 
     private void Update()
     {
         GameObject.Find("Health Bar").GetComponent<Slider>().value = ((Hero.Health * 100) / Hero.MaxHealth) / 100;
+        CameraScript.InstanceMoveTo(new Vector2(Hero.transform.position.x, CameraScript.attachedY));
     }
     void FixedUpdate()
     {
         if (Input.GetKey(KeyCode.D))
         {
             GetComponent<Unit>().MoveTo(Vector2.right);
-            CameraScript.InstanceMoveTo(new Vector2(transform.position.x, Camera.main.gameObject.transform.position.y));
         }
 
         if (Input.GetKey(KeyCode.A))
         {
             GetComponent<Unit>().MoveTo(Vector2.left);
-            CameraScript.InstanceMoveTo(new Vector2(transform.position.x, Camera.main.gameObject.transform.position.y));
         }
 
         if (Input.GetKey(KeyCode.W))
