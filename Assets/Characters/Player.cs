@@ -3,58 +3,38 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+[RequireComponent(typeof(Unit))]
+public class Player : MonoBehaviour {
 
-[RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(Collider2D))]
-public class Player : MonoBehaviour {    
-
-    // Start is called before the first frame update
-    public float MovementSpeed = 7f;
-    public float JumpScale = 2f;
-    public bool ShowName = false;
-
-    bool OnGround = true;
+    private Unit Hero;
 
     private void Awake()
     {
+        Hero = GetComponent<Unit>();
         CameraScript.InstanceMoveTo(new Vector3(transform.position.x, Camera.main.gameObject.transform.position.y, Camera.main.gameObject.transform.position.z));
-    }
-    void Start()
-    {
-        this.GetComponent<Rigidbody2D>().gravityScale = JumpScale / 2;
     }
 
     private void Update()
     {
-        
+        GameObject.Find("Health Bar").GetComponent<Slider>().value = ((Hero.Health * 100) / Hero.MaxHealth) / 100;
     }
     void FixedUpdate()
     {
         if (Input.GetKey(KeyCode.D))
         {
-            this.transform.Translate(Vector2.right * MovementSpeed * Time.deltaTime);
+            GetComponent<Unit>().MoveTo(Vector2.right);
             CameraScript.InstanceMoveTo(new Vector2(transform.position.x, Camera.main.gameObject.transform.position.y));
         }
 
         if (Input.GetKey(KeyCode.A))
         {
-            this.transform.Translate(Vector2.left * MovementSpeed * Time.deltaTime);
+            GetComponent<Unit>().MoveTo(Vector2.left);
             CameraScript.InstanceMoveTo(new Vector2(transform.position.x, Camera.main.gameObject.transform.position.y));
         }
 
-        if (Input.GetKey(KeyCode.W) && OnGround)
+        if (Input.GetKey(KeyCode.W))
         {
-            this.GetComponent<Rigidbody2D>().AddForce(Vector2.up * JumpScale * 100);
-            OnGround = false;
-        }
-    }
-
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.transform.tag == "Ground")
-        {
-            OnGround = true;
-            this.GetComponent<Rigidbody2D>().inertia = 0;
+            GetComponent<Unit>().Jump();
         }
     }
 }
