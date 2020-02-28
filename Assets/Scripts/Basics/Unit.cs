@@ -13,31 +13,41 @@ public class Unit : MonoBehaviour
     public bool Movable = true;
     public bool Invulnerable = false;
     public bool IsDead = false;
+    public bool CanDoubleJump;
     public bool OnGround;
 
     public float Health;
     public float MaxHealth;
 
     public float MovementSpeed = 7f;
-    private float JumpScale = 4f;
+    public float JumpScale = 4f;
+
+    private float DoubleJumpsCount { set; get; } = 0;
+    public int DoubleJumpsMax = 1;
 
     public Animator Animator;
 
-    private void Awake()
-    {
-        GetComponent<Rigidbody2D>().gravityScale = JumpScale / 2;
-    }
-    
     public void MoveTo(Vector2 _direction)
     {
         if (Movable) transform.Translate(_direction * MovementSpeed * Time.deltaTime);
     }
     public void Jump()
     {
-        if (OnGround && Movable)
+        if (Movable)
         {
-            this.GetComponent<Rigidbody2D>().AddForce(Vector2.up * JumpScale * 100);
-            OnGround = false;
+            if (OnGround)
+            {
+                GetComponent<Rigidbody2D>().velocity = Vector2.up * JumpScale;
+                OnGround = false;
+            }
+            else
+            {
+                if (CanDoubleJump && DoubleJumpsCount < DoubleJumpsMax)
+                {
+                    GetComponent<Rigidbody2D>().velocity = Vector2.up * JumpScale;
+                    DoubleJumpsCount++;
+                }
+            }
         }
     }
     public void Attack()
@@ -73,7 +83,8 @@ public class Unit : MonoBehaviour
         if (collision.transform.tag == "Ground")
         {
             OnGround = true;
-            this.GetComponent<Rigidbody2D>().inertia = 0;
+            GetComponent<Rigidbody2D>().inertia = 0;
+            DoubleJumpsCount = 0;
         }
     }
 }

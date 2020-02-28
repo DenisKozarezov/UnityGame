@@ -11,8 +11,8 @@ public class CameraScript : MonoBehaviour
     
     /* Привязка камеры к юниту */
     public static Unit currentTarget { private set; get; } // Юнит, к которому привязана камера.    
-    public static float attachedDepth { private set; get; } = 2f; // Доп. глубина Y' отн. Yцентр.
-    public static float attachedY { private set; get; } // Результат привязки: Yцентр. + attachedDepth
+    public static float attachedDepth { private set; get; } = 0f; // Доп. глубина Y' отн. Yцентр.
+    public static float attachedY { private set; get; } // Результат привязки: Yцентр. - attachedDepth
 
     /* Состояние камеры: ЗАТУХАНИЕ, ПОЯВЛЕНИЕ */
     public enum FadeState { IN, OUT }
@@ -24,7 +24,7 @@ public class CameraScript : MonoBehaviour
     }
     private void Update()
     {
-        attachedY = currentTarget.gameObject.transform.position.y + attachedDepth;
+        attachedY = currentTarget.gameObject.transform.position.y - attachedDepth;
     }
     
     /* Передвижение камеры */
@@ -63,6 +63,7 @@ public class CameraScript : MonoBehaviour
     public static void AttachToUnit(Unit _target)
     {
         currentTarget = _target;
+        CameraScript.InstanceMoveTo(new Vector2(currentTarget.gameObject.transform.position.x, currentTarget.gameObject.transform.position.y) - new Vector2(0, attachedY));
     }
 
     /* Отдаление/приближение камеры на величину _zoom */

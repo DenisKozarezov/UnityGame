@@ -11,8 +11,7 @@ public class Player : MonoBehaviour {
     private void Awake()
     {
         Hero = GetComponent<Unit>();
-        CameraScript.AttachToUnit(Hero);
-        CameraScript.InstanceMoveTo(new Vector2(Hero.transform.position.x, CameraScript.attachedY));
+        CameraScript.AttachToUnit(Hero);        
     }
 
     private void Update()
@@ -32,7 +31,7 @@ public class Player : MonoBehaviour {
             GetComponent<Unit>().MoveTo(Vector2.left);
         }
 
-        if (Input.GetKey(KeyCode.W))
+        if (Input.GetKeyDown(KeyCode.W))
         {
             GetComponent<Unit>().Jump();
         }
