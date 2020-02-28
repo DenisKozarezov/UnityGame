@@ -15,6 +15,8 @@ public abstract class ItemsBank
         return null;
     }
 }
+
+[RequireComponent(typeof(Unit))]
 public class Item : MonoBehaviour
 {
     public enum ItemType { HasCharges, Disposable, Usable }
@@ -22,6 +24,7 @@ public class Item : MonoBehaviour
     public string Description { set; get; }
     public int Charges { set; get; }
     ItemType Type { set; get; }
+    Unit Owner { set; get; }
 
     public delegate void ChargesAction();
     public delegate void UsableAction();

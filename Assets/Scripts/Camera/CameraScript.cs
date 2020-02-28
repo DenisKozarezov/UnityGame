@@ -6,16 +6,16 @@ using UnityEngine.Rendering;
 [RequireComponent(typeof(CameraScript))]
 public class CameraScript : MonoBehaviour
 {
-    public static float normalZoom { private set; get; }
-    public static float currentZoom { private set; get; }
+    public static float normalZoom { private set; get; } // Нормальное приближение при старте игры
+    public static float currentZoom { private set; get; } // Текущее приближение камеры
     
     /* Привязка камеры к юниту */
     public static Unit currentTarget { private set; get; } // Юнит, к которому привязана камера.    
-    public static float attachedDepth { private set; get; } = 2f; // Доп. глубина Y отн. Yцентр.
+    public static float attachedDepth { private set; get; } = 2f; // Доп. глубина Y' отн. Yцентр.
     public static float attachedY { private set; get; } // Результат привязки: Yцентр. + attachedDepth
 
     /* Состояние камеры: ЗАТУХАНИЕ, ПОЯВЛЕНИЕ */
-    public enum FadeState { IN, OUT}
+    public enum FadeState { IN, OUT }
     public static FadeState CameraFadeStatus { private set; get; } = FadeState.OUT;
     
     private void Awake()
