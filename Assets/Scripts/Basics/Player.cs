@@ -16,10 +16,10 @@ public class Player : MonoBehaviour {
 
     private void Update()
     {
-        GameObject.Find("Health Bar").GetComponent<Slider>().value = ((Hero.Health * 100) / Hero.MaxHealth) / 100;
+        GameObject.Find("Health Bar").GetComponent<Slider>().value = Hero.Health / Hero.MaxHealth;
         CameraScript.InstanceMoveTo(new Vector2(Hero.transform.position.x, CameraScript.attachedY));
     }
-    void FixedUpdate()
+    private void FixedUpdate()
     {
         if (Input.GetKey(KeyCode.D))
         {
