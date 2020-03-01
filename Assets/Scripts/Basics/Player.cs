@@ -11,7 +11,7 @@ public class Player : MonoBehaviour {
     private void Awake()
     {
         Hero = GetComponent<Unit>();
-        CameraScript.AttachToUnit(Hero);        
+        CameraScript.AttachToUnit(Hero);
     }
 
     private void Update()

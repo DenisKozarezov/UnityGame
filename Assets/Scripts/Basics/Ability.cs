@@ -15,7 +15,7 @@ public abstract class AbilitiesBank
         return null;
     }
 }
-public class Ability
+public class Ability : MonoBehaviour
 {    
     public enum AbilityType { TARGET, NONTARGET, POINT }
     public string Name { set; get; }
@@ -24,6 +24,8 @@ public class Ability
     public Unit Target { set; get; }
     public Vector2 Point { set; get; }
     public AbilityType Type { set; get; } = AbilityType.NONTARGET;
+
+    public bool IsReady = true;
 
     private delegate void TargetAction(Unit _target);
     private delegate void NonTargetAction();
@@ -47,18 +49,22 @@ public class Ability
     }
     public void Cast()
     {
-        switch (Type)
+        if (IsReady)
         {
-            case AbilityType.TARGET:
-                TDelegate.Invoke(Target);
-                break;
-            case AbilityType.POINT:
-                PDelegate.Invoke(Point);
-                break;
-            case AbilityType.NONTARGET:
-                NTDelegate.Invoke();
-                break;
+            switch (Type)
+            {
+                case AbilityType.TARGET:
+                    TDelegate.Invoke(Target);
+                    break;
+                case AbilityType.POINT:
+                    PDelegate.Invoke(Point);
+                    break;
+                case AbilityType.NONTARGET:
+                    NTDelegate.Invoke();
+                    break;
+            }
         }
+        IsReady = false;
     }
 }
 

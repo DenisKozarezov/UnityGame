@@ -49,14 +49,12 @@ public class CameraScript : MonoBehaviour
     private static IEnumerator InterpolatedMove(Vector3 _direction, float _time)
     {
         float startTime = Time.time;        
-        float distance = Vector2.Distance(new Vector3(Camera.main.transform.position.x, Camera.main.transform.position.y), _direction);
         while (Camera.main.transform.position != _direction)
         {
-            float coveredDistance = (Time.time - startTime) / _time;
-            Camera.main.gameObject.transform.position = Vector3.Lerp(Camera.main.transform.position, _direction, coveredDistance / distance);
+            float coveredTime = Time.time - startTime;
+            Camera.main.gameObject.transform.position = Vector3.Lerp(Camera.main.transform.position, _direction, coveredTime / _time);
             yield return null;
         }
-        Debug.Log(_direction);
         Camera.main.GetComponent<MonoBehaviour>().StopCoroutine(InterpolatedMove(_direction, _time));
     }
 
@@ -74,11 +72,11 @@ public class CameraScript : MonoBehaviour
     private static IEnumerator InterpolatedZoom(float _zoom, float _time)
     {
         float startTime = Time.time;
-        float distance = Mathf.Abs(Camera.main.orthographicSize - _zoom);
+        float distance = Camera.main.orthographicSize;
         while (Camera.main.orthographicSize != _zoom)
         {
-            float coveredDistance = (Time.time - startTime) / _time;
-            Camera.main.orthographicSize = Mathf.Lerp(Camera.main.orthographicSize, _zoom, coveredDistance / distance);
+            float coveredTime = Time.time - startTime;
+            Camera.main.orthographicSize = Mathf.Lerp(distance, _zoom, coveredTime / _time);
             currentZoom = Camera.main.orthographicSize;
             yield return null;
         }
@@ -93,20 +91,16 @@ public class CameraScript : MonoBehaviour
     private static IEnumerator InterpolatedFade(FadeState _fadeState, float _time)
     {
         float startTime = Time.time;
+        Color vignetteColor = Camera.main.GetComponent<Wilberforce.FinalVignette.FinalVignetteCommandBuffer>().VignetteOuterColor;
         switch (_fadeState)
         {
-            case FadeState.IN:
-                float distanceIn = Camera.main.GetComponent<Wilberforce.FinalVignette.FinalVignetteCommandBuffer>().VignetteOuterValueDistance;
-                while (Camera.main.GetComponent<Wilberforce.FinalVignette.FinalVignetteCommandBuffer>().VignetteOuterValueDistance != 0)
+            case FadeState.IN:                
+                while (Camera.main.GetComponent<Wilberforce.FinalVignette.FinalVignetteCommandBuffer>().VignetteOuterColor != Color.black)
                 {
-                    float coveredDistanceIn = (Time.time - startTime) / _time;
-                    float valueIn = Mathf.Lerp(Camera.main.GetComponent<Wilberforce.FinalVignette.FinalVignetteCommandBuffer>().VignetteOuterValueDistance, 0, coveredDistanceIn / distanceIn);
-                    Camera.main.GetComponent<Wilberforce.FinalVignette.FinalVignetteCommandBuffer>().VignetteOuterValueDistance = valueIn;
-
-                    Color vignetteColor = Camera.main.GetComponent<Wilberforce.FinalVignette.FinalVignetteCommandBuffer>().VignetteOuterColor;
-                    Color newColor = Color.Lerp(vignetteColor, Color.black, coveredDistanceIn / distanceIn);
+                    float coveredTimeIn = Time.time - startTime;                    
+                    Color newColor = Color.Lerp(vignetteColor, Color.black, coveredTimeIn / _time);
                     Camera.main.GetComponent<Wilberforce.FinalVignette.FinalVignetteCommandBuffer>().VignetteOuterColor = newColor;
-                    
+                    Camera.main.GetComponent<Wilberforce.FinalVignette.FinalVignetteCommandBuffer>().VignetteInnerColor = newColor;
                     yield return null;
                 }
                 CameraFadeStatus = FadeState.IN;

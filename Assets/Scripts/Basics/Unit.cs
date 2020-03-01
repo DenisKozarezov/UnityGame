@@ -15,6 +15,7 @@ public class Unit : MonoBehaviour
     public bool IsDead = false;
     public bool CanDoubleJump;
     public bool OnGround;
+    private bool InAir;
 
     public float Health;
     public float MaxHealth;
@@ -44,7 +45,7 @@ public class Unit : MonoBehaviour
             {
                 if (CanDoubleJump && DoubleJumpsCount < DoubleJumpsMax)
                 {
-                    GetComponent<Rigidbody2D>().velocity = Vector2.up * JumpScale;
+                    GetComponent<Rigidbody2D>().velocity = Vector2.up * JumpScale * 1.2f;
                     DoubleJumpsCount++;
                 }
             }
