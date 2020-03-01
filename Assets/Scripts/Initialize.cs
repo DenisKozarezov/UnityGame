@@ -5,8 +5,6 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class Initialize : MonoBehaviour
 {
-    public Sprite Background;
-    public Material LightMaterial;
     // Start is called before the first frame update
     void Start()
     {
@@ -17,14 +15,21 @@ public class Initialize : MonoBehaviour
         for (int i = 1; i <= 25; i++)
         {
             for (int j = 1; j <= 5; j++)
-            {
-                GameObject obj = new GameObject();
-                obj.AddComponent<SpriteRenderer>().sprite = Background;
-                obj.GetComponent<SpriteRenderer>().material = LightMaterial;
-                obj.transform.position = new Vector2(i * Background.bounds.size.x, j * Background.bounds.size.y);
-                obj.gameObject.layer = 0;                
-                obj.gameObject.transform.parent = wall.gameObject.transform;
-                obj.name = "Background";
+            {               
+                Sprite background = Resources.Load<Sprite>("Sprites/Background2");
+                Material lightMaterial = Resources.Load<Material>("Materials/LightMaterial");
+
+                if (background != null)
+                {
+                    GameObject obj = new GameObject();
+                    obj.AddComponent<SpriteRenderer>().sprite = background;
+                    obj.GetComponent<SpriteRenderer>().material = lightMaterial;
+
+                    obj.transform.position = new Vector2(i * background.bounds.size.x, j * background.bounds.size.y);
+                    obj.gameObject.layer = 0;
+                    obj.gameObject.transform.parent = wall.gameObject.transform;
+                    obj.name = "Background";
+                }
             }
         }
     }
