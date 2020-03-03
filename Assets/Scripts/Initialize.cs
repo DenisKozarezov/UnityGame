@@ -12,9 +12,9 @@ public class Initialize : MonoBehaviour
         GameObject wall = new GameObject();
         wall.transform.parent = GameObject.Find("BACKGROUND LAYER").transform;
         wall.name = "Wall";
-        for (int i = 1; i <= 25; i++)
+        for (int i = 1; i <= 35; i++)
         {
-            for (int j = 1; j <= 5; j++)
+            for (int j = 1; j <= 15; j++)
             {               
                 Sprite background = Resources.Load<Sprite>("Sprites/Background2");
                 Material lightMaterial = Resources.Load<Material>("Materials/LightMaterial");

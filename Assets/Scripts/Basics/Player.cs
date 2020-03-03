@@ -6,7 +6,7 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Unit))]
 public class Player : MonoBehaviour {
 
-    private Unit Hero;
+    public static Unit Hero { private set; get; }
 
     private void Awake()
     {
@@ -16,7 +16,6 @@ public class Player : MonoBehaviour {
 
     private void Update()
     {
-        GameObject.Find("Health Bar").GetComponent<Slider>().value = Hero.Health / Hero.MaxHealth;
         CameraScript.InstanceMoveTo(new Vector2(Hero.transform.position.x, CameraScript.attachedY));
     }
     private void FixedUpdate()

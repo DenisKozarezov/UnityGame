@@ -8,17 +8,19 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Animator))]
 public class Unit : MonoBehaviour
 {
-    /* Статусы юнита */
+    [Header("Статус")]
     public bool Commandable = true;
     public bool Movable = true;
     public bool Invulnerable = false;
     public bool IsDead = false;
     public bool CanDoubleJump;
     public bool OnGround;
-    private bool InAir;
 
+    [Header("Характеристики")]
     public float Health;
     public float MaxHealth;
+    public float Mana;
+    public float MaxMana;
 
     public float MovementSpeed = 7f;
     public float JumpScale = 4f;
@@ -26,6 +28,7 @@ public class Unit : MonoBehaviour
     private float DoubleJumpsCount { set; get; } = 0;
     public int DoubleJumpsMax = 1;
 
+    [Header("Аниматор")]
     public Animator Animator;
 
     public void MoveTo(Vector2 _direction)
@@ -74,9 +77,15 @@ public class Unit : MonoBehaviour
             Movable = false;
         }
     }
-    public void Kill(Unit _target, float _value)
+    public void Kill(Unit _target)
     {
         _target.Damage(_target, _target.MaxHealth);
+    }
+
+    public void Remove()
+    {
+        Destroy(GetComponent<Player>());
+        Destroy(gameObject);
     }
     
     private void OnCollisionEnter2D(Collision2D collision)
@@ -86,6 +95,17 @@ public class Unit : MonoBehaviour
             OnGround = true;
             GetComponent<Rigidbody2D>().inertia = 0;
             DoubleJumpsCount = 0;
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.name == "Fall Collider")
+        {         
+            Interface.UpdateBar(Interface.UnitBarType.HEALTH, Health, 0, 1f);
+            Kill(this);
+            Remove();
+            CameraScript.Fade(CameraScript.FadeState.IN, 2f);
         }
     }
 }

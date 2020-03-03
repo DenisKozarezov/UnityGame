@@ -54,6 +54,8 @@ public class Item : MonoBehaviour
                 name.GetComponent<Text>().text = gameObject.name;
                 name.GetComponent<Text>().alignment = TextAnchor.MiddleCenter;
                 name.GetComponent<Text>().font = Resources.Load<Font>("UI/Fonts/CONSOLA");
+                name.GetComponent<Text>().raycastTarget = false;
+                name.name = gameObject.name;
                 name.transform.parent = GameObject.Find("UI Text").transform;
             }
             else
