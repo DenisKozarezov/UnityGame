@@ -61,7 +61,7 @@ public class CameraScript : MonoBehaviour
     public static void AttachToUnit(Unit _target)
     {
         currentTarget = _target;
-        CameraScript.InstanceMoveTo(new Vector2(currentTarget.gameObject.transform.position.x, currentTarget.gameObject.transform.position.y) - new Vector2(0, attachedY));
+        if (currentTarget != null) InstanceMoveTo(new Vector2(currentTarget.gameObject.transform.position.x, currentTarget.gameObject.transform.position.y) - new Vector2(0, attachedY));
     }
 
     /* Отдаление/приближение камеры на величину _zoom */
@@ -95,7 +95,7 @@ public class CameraScript : MonoBehaviour
         switch (_fadeState)
         {
             case FadeState.IN:                
-                while (Camera.main.GetComponent<Wilberforce.FinalVignette.FinalVignetteCommandBuffer>().VignetteOuterColor != Color.black)
+                while (Camera.main.GetComponent<Wilberforce.FinalVignette.FinalVignetteCommandBuffer>().VignetteInnerColor != Color.black)
                 {
                     float elapsedTime = Time.time - startTime;                    
                     Color newColor = Color.Lerp(vignetteColor, Color.black, elapsedTime / _time);                    

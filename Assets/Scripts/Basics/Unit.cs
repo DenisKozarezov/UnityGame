@@ -33,7 +33,7 @@ public class Unit : MonoBehaviour
 
     public void MoveTo(Vector2 _direction)
     {
-        if (Movable) transform.Translate(_direction * MovementSpeed * Time.deltaTime);
+        if (Movable && Commandable && !IsDead) transform.Translate(_direction * MovementSpeed * Time.deltaTime);
     }
     public void Jump()
     {
@@ -76,9 +76,13 @@ public class Unit : MonoBehaviour
             Commandable = false;
             Movable = false;
         }
+
+        if (Player.Hero.IsDead) Game.Defeat();
     }
     public void Kill(Unit _target)
     {
+        if (this == Player.Hero) Interface.UpdateBar(Interface.UnitBarType.HEALTH, Player.Hero.Health, 0, 1f);
+        
         _target.Damage(_target, _target.MaxHealth);
     }
 
@@ -101,11 +105,8 @@ public class Unit : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.name == "Fall Collider")
-        {         
-            Interface.UpdateBar(Interface.UnitBarType.HEALTH, Health, 0, 1f);
+        {                     
             Kill(this);
-            Remove();
-            CameraScript.Fade(CameraScript.FadeState.IN, 2f);
         }
     }
 }

@@ -5,17 +5,20 @@ using UnityEngine.UI;
 
 public class Interface : MonoBehaviour
 {
-
-    // Start is called before the first frame update
-    void Start()
+    public GameObject UIPanel;
+    public static bool InterfaceHidden { set; get; } = false;
+    private void Update()
     {
-        
+        if (!InterfaceHidden && CameraScript.CameraFadeStatus == CameraScript.FadeState.IN)
+        {
+            HideInterface(true);
+        }
     }
-
-    // Update is called once per frame
-    void Update()
+    
+    public void HideInterface(bool _status)
     {
-        
+        UIPanel.SetActive(!_status);
+        InterfaceHidden = !_status;        
     }
 
     public enum UnitBarType { HEALTH, MANA }

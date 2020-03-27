@@ -5,12 +5,12 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class Initialize : MonoBehaviour
 {
-    // Start is called before the first frame update
+    public GameObject WallLayer;
     void Start()
     {
         Clear();
         GameObject wall = new GameObject();
-        wall.transform.parent = GameObject.Find("BACKGROUND LAYER").transform;
+        wall.transform.parent = WallLayer.transform;
         wall.name = "Wall";
         for (int i = 1; i <= 35; i++)
         {
@@ -36,9 +36,9 @@ public class Initialize : MonoBehaviour
     
     void Clear()
     {
-        for (int i = 0; i < GameObject.Find("BACKGROUND LAYER").transform.childCount; i++)
+        for (int i = 0; i < WallLayer.transform.childCount; i++)
         {
-            DestroyImmediate(GameObject.Find("BACKGROUND LAYER").transform.GetChild(i).gameObject);
+            DestroyImmediate(WallLayer.transform.GetChild(i).gameObject);
         }
     }
 }

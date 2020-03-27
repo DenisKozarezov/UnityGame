@@ -56,6 +56,7 @@ public class Item : MonoBehaviour
                 name.GetComponent<Text>().font = Resources.Load<Font>("UI/Fonts/CONSOLA");
                 name.GetComponent<Text>().raycastTarget = false;
                 name.name = gameObject.name;
+                name.layer = 5;
                 name.transform.parent = GameObject.Find("UI Text").transform;
             }
             else
