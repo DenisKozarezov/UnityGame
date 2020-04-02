@@ -11,7 +11,7 @@ public class CameraScript : MonoBehaviour
     
     /* Привязка камеры к юниту */
     public static Unit currentTarget { private set; get; } // Юнит, к которому привязана камера.    
-    public static float attachedDepth { private set; get; } = 0f; // Доп. глубина Y' отн. Yцентр.
+    public static float attachedDepth { private set; get; } = -2f; // Доп. глубина Y' отн. Yцентр.
     public static float attachedY { private set; get; } // Результат привязки: Yцентр. - attachedDepth
 
     /* Состояние камеры: ЗАТУХАНИЕ, ПОЯВЛЕНИЕ */
