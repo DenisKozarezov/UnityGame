@@ -18,6 +18,8 @@ public class Player : MonoBehaviour {
     {
         CameraScript.InstanceMoveTo(new Vector2(Hero.transform.position.x, CameraScript.attachedY));
     }
+    
+    // УПРАВЛЕНИЕ ПЕРСОНАЖЕМ
     private void FixedUpdate()
     {
         if (Input.GetKey(Options.Right))

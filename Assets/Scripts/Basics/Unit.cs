@@ -27,12 +27,11 @@ public class Unit : MonoBehaviour
     public float MovementSpeed = 7f;
     public float JumpScale = 4f;
 
-    private float DoubleJumpsCount { set; get; } = 0;
+    private int DoubleJumpsCount { set; get; } = 0;
     public int DoubleJumpsMax = 1;
 
     [Header("Аниматор")]
     public Animator Animator;
-
 
     public Unit()
     {
@@ -53,7 +52,7 @@ public class Unit : MonoBehaviour
     }
     public void Jump()
     {
-        if (Movable)
+        if (Movable && Commandable)
         {
             if (OnGround)
             {
@@ -64,11 +63,11 @@ public class Unit : MonoBehaviour
             {
                 if (CanDoubleJump && DoubleJumpsCount < DoubleJumpsMax)
                 {
-                    GetComponent<Rigidbody2D>().velocity = Vector2.up * JumpScale * 1.2f;
+                    GetComponent<Rigidbody2D>().velocity = Vector2.up * JumpScale;
                     DoubleJumpsCount++;
                 }
             }
-        }
+        }       
     }
     public void Attack()
     {
@@ -87,7 +86,7 @@ public class Unit : MonoBehaviour
         if (_target.Health - _value > 0) _target.Health -= _value;
         else
         {
-            if (this == Player.Hero) Interface.UpdateBar(Interface.UnitBarType.HEALTH, Player.Hero.Health, 0, 2f);
+            if (this == Player.Hero) PlayerBar.Update(PlayerBar.PlayerBarType.HEALTH, Player.Hero.Health, 0, 2f);
             
             _target.Health = 0;
             IsDead = true;

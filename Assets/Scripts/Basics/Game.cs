@@ -31,7 +31,7 @@ public class Game : MonoBehaviour
         yield return new WaitForSeconds(_time);
 
         Player.Hero.Remove();
-        GameObject.Find("Canvas").GetComponent<Interface>().Hide(true);
+        Interface.Hide(true);
         GameObject.Find("Canvas").GetComponent<Interface>().DefeatPanel.SetActive(true);
 
         GameObject.Find("Game Manager").GetComponent<Game>().StopCoroutine(DefeatNumerator(_time));

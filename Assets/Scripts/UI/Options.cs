@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-
 public class Options : MonoBehaviour
 {   
-    // НОРМАЛЬНЫЕ ЗНАЧЕНИЯ КЛАВИШ
+    // СТАНДАРТНЫЕ ЗНАЧЕНИЯ ОПЦИЙ
     private static KeyCode DefaultRight { set; get; } = KeyCode.D;
     private static KeyCode DefaultLeft { set; get; } = KeyCode.A;
     private static KeyCode DefaultJump { set; get; } = KeyCode.W;
@@ -13,8 +12,9 @@ public class Options : MonoBehaviour
     private static KeyCode DefaultMeleeAttack { set; get; } = KeyCode.Space;
     private static KeyCode DefaultRangeAttack { set; get; } = KeyCode.LeftShift;
     private static KeyCode DefaultGameMenu { set; get; } = KeyCode.Escape;
+    private static bool DefaultTipsOn { set; get; } = true;
 
-    // ТЕКУЩИЕ ЗНАЧЕНИЯ КЛАВИШ
+    // ТЕКУЩИЕ ЗНАЧЕНИЯ ОПЦИЙ
     public static KeyCode Right { set; get; } = DefaultRight;
     public static KeyCode Left { set; get; } = DefaultLeft;
     public static KeyCode Jump { set; get; } = DefaultJump; 
@@ -22,14 +22,24 @@ public class Options : MonoBehaviour
     public static KeyCode MeleeAttack { set; get; } = DefaultMeleeAttack;
     public static KeyCode RangeAttack { set; get; } = DefaultRangeAttack;
     public static KeyCode GameMenu { set; get; } = DefaultGameMenu;
+    private static bool TipsOn { set; get; } = DefaultTipsOn;
+
 
     private static bool IsButtonChanged = false;
     private static GameObject changedButton;
     private static KeyCode changedKey = KeyCode.None;
-    private static ColorBlock colorBlock;
+    private static ColorBlock defaultColorBlock;
 
-    public GameObject[] Buttons;
+    public GameObject[] OptionsParameters;
 
+    private void Awake()
+    {
+        defaultColorBlock.normalColor = Color.white;
+        defaultColorBlock.highlightedColor = Color.white;
+        defaultColorBlock.pressedColor = Color.grey;
+        defaultColorBlock.selectedColor = Color.white;
+        defaultColorBlock.colorMultiplier = 1;
+    }
     private void OnGUI()
     {
         if (Input.anyKeyDown && Event.current.keyCode != KeyCode.None)
@@ -63,9 +73,9 @@ public class Options : MonoBehaviour
                         break;
                 }
                 changedButton.GetComponentInChildren<Text>().text = changedKey.ToString();
-                
+
                 changedKey = KeyCode.None;
-                changedButton.GetComponent<Button>().colors = colorBlock;
+                changedButton.GetComponent<Button>().colors = defaultColorBlock;
                 changedButton = null;
                 IsButtonChanged = false;
             }
@@ -73,21 +83,27 @@ public class Options : MonoBehaviour
     }
 
     public void ChangeKey(GameObject _button)
-    {    
-        changedButton = _button;
-        colorBlock = _button.GetComponent<Button>().colors;
-        
-        foreach (GameObject button in Buttons)
+    {
+        if (IsButtonChanged && changedButton != _button)
         {
-            if (button != _button) button.GetComponent<Button>().colors = colorBlock;
+            changedKey = KeyCode.None;
+            changedButton.GetComponent<Button>().colors = defaultColorBlock;
+            IsButtonChanged = false;
         }
 
-        ColorBlock _colorBlock = colorBlock;
+        changedButton = _button;
+
+        for (int i = 0; i < GameObject.Find("Player Control").transform.GetChild(1).childCount; i++)
+        {
+            if (OptionsParameters[i] != _button) OptionsParameters[i].GetComponent<Button>().colors = defaultColorBlock;
+        }
+
+        ColorBlock _colorBlock = defaultColorBlock;
         _colorBlock.highlightedColor = Color.blue;
         _colorBlock.normalColor = Color.blue;
 
         _button.GetComponent<Button>().colors = _colorBlock;
-         IsButtonChanged = true;
+        IsButtonChanged = true;
     }
     public void Open()
     {
@@ -109,12 +125,18 @@ public class Options : MonoBehaviour
         RangeAttack = DefaultRangeAttack;
         GameMenu = DefaultGameMenu;
 
-        Buttons[0].GetComponentInChildren<Text>().text = DefaultRight.ToString();
-        Buttons[1].GetComponentInChildren<Text>().text = DefaultLeft.ToString();
-        Buttons[2].GetComponentInChildren<Text>().text = DefaultJump.ToString();
-        Buttons[3].GetComponentInChildren<Text>().text = DefaultInteraction.ToString();
-        Buttons[4].GetComponentInChildren<Text>().text = DefaultMeleeAttack.ToString();
-        Buttons[5].GetComponentInChildren<Text>().text = DefaultRangeAttack.ToString();
-        Buttons[6].GetComponentInChildren<Text>().text = DefaultGameMenu.ToString();
+        OptionsParameters[0].GetComponentInChildren<Text>().text = DefaultRight.ToString();
+        OptionsParameters[1].GetComponentInChildren<Text>().text = DefaultLeft.ToString();
+        OptionsParameters[2].GetComponentInChildren<Text>().text = DefaultJump.ToString();
+        OptionsParameters[3].GetComponentInChildren<Text>().text = DefaultInteraction.ToString();
+        OptionsParameters[4].GetComponentInChildren<Text>().text = DefaultMeleeAttack.ToString();
+        OptionsParameters[5].GetComponentInChildren<Text>().text = DefaultRangeAttack.ToString();
+        OptionsParameters[6].GetComponentInChildren<Text>().text = DefaultGameMenu.ToString();
+
+        OptionsParameters[7].GetComponent<Toggle>().isOn = true;
+    }
+    public void ChangeTipsOn()
+    {
+        TipsOn = OptionsParameters[7].GetComponent<Toggle>().isOn;
     }
 }
