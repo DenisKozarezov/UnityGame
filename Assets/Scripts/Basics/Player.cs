@@ -20,19 +20,31 @@ public class Player : MonoBehaviour {
     }
     private void FixedUpdate()
     {
-        if (Input.GetKey(KeyCode.D))
+        if (Input.GetKey(Options.Right))
         {
             GetComponent<Unit>().MoveTo(Vector2.right);
         }
 
-        if (Input.GetKey(KeyCode.A))
+        if (Input.GetKey(Options.Left))
         {
             GetComponent<Unit>().MoveTo(Vector2.left);
         }
 
-        if (Input.GetKeyDown(KeyCode.W))
+        if (Input.GetKeyDown(Options.Jump))
         {
             GetComponent<Unit>().Jump();
+        }
+
+        if (Input.GetKeyDown(Options.GameMenu))
+        {         
+            if (!GameObject.Find("Canvas").GetComponent<Interface>().GameMenuPanel.activeInHierarchy)
+            {
+                GameMenu.Open();
+            }
+            else if (GameObject.Find("Canvas").GetComponent<Interface>().GameMenuPanel.activeInHierarchy && GameObject.Find("Canvas").GetComponent<Interface>().GameMenuPanel.transform.GetSiblingIndex() + 1 == GameObject.Find("Canvas").transform.childCount)
+            {
+                GameMenu.Close();
+            }
         }
     }
 }

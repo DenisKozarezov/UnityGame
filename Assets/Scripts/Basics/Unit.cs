@@ -8,6 +8,8 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Animator))]
 public class Unit : MonoBehaviour
 {
+    public static Unit[] Units = new Unit[100];
+
     [Header("Статус")]
     public bool Commandable = true;
     public bool Movable = true;
@@ -31,6 +33,20 @@ public class Unit : MonoBehaviour
     [Header("Аниматор")]
     public Animator Animator;
 
+
+    public Unit()
+    {
+        for (int i = 0; i < Units.Length; i++)
+        {
+            if (Units[i] == null)
+            {
+                Units[i] = this;
+                break;
+            }
+        }
+    }
+
+    // УМЕНИЯ
     public void MoveTo(Vector2 _direction)
     {
         if (Movable && Commandable && !IsDead) transform.Translate(_direction * MovementSpeed * Time.deltaTime);
@@ -71,6 +87,8 @@ public class Unit : MonoBehaviour
         if (_target.Health - _value > 0) _target.Health -= _value;
         else
         {
+            if (this == Player.Hero) Interface.UpdateBar(Interface.UnitBarType.HEALTH, Player.Hero.Health, 0, 2f);
+            
             _target.Health = 0;
             IsDead = true;
             Commandable = false;
@@ -80,18 +98,23 @@ public class Unit : MonoBehaviour
         if (Player.Hero.IsDead) Game.Defeat();
     }
     public void Kill(Unit _target)
-    {
-        if (this == Player.Hero) Interface.UpdateBar(Interface.UnitBarType.HEALTH, Player.Hero.Health, 0, 1f);
-        
+    {        
         _target.Damage(_target, _target.MaxHealth);
     }
 
     public void Remove()
     {
-        Destroy(GetComponent<Player>());
         Destroy(gameObject);
     }
-    
+    public static void RemoveUnits()
+    {
+        foreach (Unit _unit in Units)
+        {
+            if (_unit != null) _unit.Remove();
+        }
+    }
+
+    // КОЛЛИЗИЯ
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.transform.tag == "Ground")
