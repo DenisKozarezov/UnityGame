@@ -13,6 +13,7 @@ public class Options : MonoBehaviour
     private static KeyCode DefaultRangeAttack { set; get; } = KeyCode.LeftShift;
     private static KeyCode DefaultGameMenu { set; get; } = KeyCode.Escape;
     private static bool DefaultTipsOn { set; get; } = true;
+    private static float DefaultCameraAttachedDepth { set; get; } = 1.3f;
 
     // ТЕКУЩИЕ ЗНАЧЕНИЯ ОПЦИЙ
     public static KeyCode Right { set; get; } = DefaultRight;
@@ -22,8 +23,10 @@ public class Options : MonoBehaviour
     public static KeyCode MeleeAttack { set; get; } = DefaultMeleeAttack;
     public static KeyCode RangeAttack { set; get; } = DefaultRangeAttack;
     public static KeyCode GameMenu { set; get; } = DefaultGameMenu;
-    private static bool TipsOn { set; get; } = DefaultTipsOn;
+    public static bool TipsOn { set; get; } = DefaultTipsOn;
+    public static float CameraAttachedDepth { set; get; } = DefaultCameraAttachedDepth;
 
+    /* ------------------------------------ */
 
     private static bool IsButtonChanged = false;
     private static GameObject changedButton;
@@ -105,18 +108,13 @@ public class Options : MonoBehaviour
         _button.GetComponent<Button>().colors = _colorBlock;
         IsButtonChanged = true;
     }
-    public void Open()
+    public void ChangeTipsOn()
     {
-        GameObject.Find("Canvas").GetComponent<Interface>().OptionsPanel.transform.SetAsLastSibling();
-        GameObject.Find("Canvas").GetComponent<Interface>().OptionsPanel.SetActive(true);
-    }
-    public void Close()
-    {
-        GameObject.Find("Canvas").GetComponent<Interface>().OptionsPanel.SetActive(false);
-        GameObject.Find("Canvas").GetComponent<Interface>().OptionsPanel.transform.SetAsFirstSibling();
+        TipsOn = OptionsParameters[7].GetComponent<Toggle>().isOn;
     }
     public void Reset()
     {
+        // Сброс переменных
         Right = DefaultRight;
         Left = DefaultLeft;
         Jump = DefaultJump;
@@ -124,7 +122,10 @@ public class Options : MonoBehaviour
         MeleeAttack = DefaultMeleeAttack;
         RangeAttack = DefaultRangeAttack;
         GameMenu = DefaultGameMenu;
+        TipsOn = DefaultTipsOn;
+        CameraAttachedDepth = DefaultCameraAttachedDepth;
 
+        // Сброс клавиш
         OptionsParameters[0].GetComponentInChildren<Text>().text = DefaultRight.ToString();
         OptionsParameters[1].GetComponentInChildren<Text>().text = DefaultLeft.ToString();
         OptionsParameters[2].GetComponentInChildren<Text>().text = DefaultJump.ToString();
@@ -133,10 +134,8 @@ public class Options : MonoBehaviour
         OptionsParameters[5].GetComponentInChildren<Text>().text = DefaultRangeAttack.ToString();
         OptionsParameters[6].GetComponentInChildren<Text>().text = DefaultGameMenu.ToString();
 
-        OptionsParameters[7].GetComponent<Toggle>().isOn = true;
+        // Сброс подсказок
+        OptionsParameters[7].GetComponent<Toggle>().isOn = DefaultTipsOn;
     }
-    public void ChangeTipsOn()
-    {
-        TipsOn = OptionsParameters[7].GetComponent<Toggle>().isOn;
-    }
+    
 }

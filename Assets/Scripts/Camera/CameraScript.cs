@@ -11,8 +11,7 @@ public class CameraScript : MonoBehaviour
     
     /* Привязка камеры к юниту */
     public static Unit currentTarget { private set; get; } // Юнит, к которому привязана камера.    
-    public static float attachedDepth { private set; get; } = -2f; // Доп. глубина Y' отн. Yцентр.
-    public static float attachedY { private set; get; } // Результат привязки: Yцентр. - attachedDepth
+    public static float attachedDepth { private set; get; } = Options.CameraAttachedDepth; // Доп. высота Y' отн. Yцентр.
 
     /* Состояние камеры: ЗАТУХАНИЕ, ПОЯВЛЕНИЕ */
     public enum FadeState { IN, OUT }
@@ -21,10 +20,6 @@ public class CameraScript : MonoBehaviour
     private void Awake()
     {
         normalZoom = Camera.main.orthographicSize;
-    }
-    private void Update()
-    {
-        if (currentTarget != null) attachedY = currentTarget.gameObject.transform.position.y - attachedDepth;
     }
     
     /* Передвижение камеры */
@@ -60,8 +55,17 @@ public class CameraScript : MonoBehaviour
 
     public static void AttachToUnit(Unit _target)
     {
-        currentTarget = _target;
-        if (currentTarget != null) InstanceMoveTo(new Vector2(currentTarget.gameObject.transform.position.x, currentTarget.gameObject.transform.position.y) - new Vector2(0, attachedY));
+        if (_target != null)
+        {
+            currentTarget = _target;
+            Camera.main.gameObject.transform.SetParent(_target.transform);
+            Camera.main.gameObject.transform.localPosition = new Vector3(0, attachedDepth, Camera.main.gameObject.transform.position.z);
+        }
+    }
+    public static void Detach()
+    {
+        currentTarget = null;
+        Camera.main.transform.SetParent(GameObject.Find("Level").transform.parent);
     }
 
     /* Отдаление/приближение камеры на величину _zoom */

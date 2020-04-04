@@ -11,7 +11,7 @@ public class Game : MonoBehaviour
     public static void Defeat()
     {
         IsDefeat = true;
-        CameraScript.AttachToUnit(null);        
+        CameraScript.Detach();       
         
         GameObject.Find("Game Manager").GetComponent<Game>().StartCoroutine(DefeatNumerator(2f));
     }
@@ -31,8 +31,9 @@ public class Game : MonoBehaviour
         yield return new WaitForSeconds(_time);
 
         Player.Hero.Remove();
-        Interface.Hide(true);
-        GameObject.Find("Canvas").GetComponent<Interface>().DefeatPanel.SetActive(true);
+        Interface.Show(false);
+        GameObject.Find("Canvas").GetComponent<Interface>().Close(GameObject.Find("Canvas").GetComponent<Interface>().GameMenuPanel);
+        GameObject.Find("Canvas").GetComponent<Interface>().Open(GameObject.Find("Canvas").GetComponent<Interface>().DefeatPanel);
 
         GameObject.Find("Game Manager").GetComponent<Game>().StopCoroutine(DefeatNumerator(_time));
     }

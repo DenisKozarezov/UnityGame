@@ -13,15 +13,10 @@ public class Player : MonoBehaviour {
         Hero = GetComponent<Unit>();
         CameraScript.AttachToUnit(Hero);
     }
-
-    private void Update()
-    {
-        CameraScript.InstanceMoveTo(new Vector2(Hero.transform.position.x, CameraScript.attachedY));
-    }
-    
+        
     // УПРАВЛЕНИЕ ПЕРСОНАЖЕМ
-    private void FixedUpdate()
-    {
+    private void Update()
+    {     
         if (Input.GetKey(Options.Right))
         {
             GetComponent<Unit>().MoveTo(Vector2.right);
@@ -35,18 +30,6 @@ public class Player : MonoBehaviour {
         if (Input.GetKeyDown(Options.Jump))
         {
             GetComponent<Unit>().Jump();
-        }
-
-        if (Input.GetKeyDown(Options.GameMenu))
-        {         
-            if (!GameObject.Find("Canvas").GetComponent<Interface>().GameMenuPanel.activeInHierarchy)
-            {
-                GameMenu.Open();
-            }
-            else if (GameObject.Find("Canvas").GetComponent<Interface>().GameMenuPanel.activeInHierarchy && GameObject.Find("Canvas").GetComponent<Interface>().GameMenuPanel.transform.GetSiblingIndex() + 1 == GameObject.Find("Canvas").transform.childCount)
-            {
-                GameMenu.Close();
-            }
-        }
+        }        
     }
 }
