@@ -27,13 +27,15 @@ public class Options : MonoBehaviour
     public static float CameraAttachedDepth { set; get; } = DefaultCameraAttachedDepth;
 
     /* ------------------------------------ */
-
     private static bool IsButtonChanged = false;
     private static GameObject changedButton;
     private static KeyCode changedKey = KeyCode.None;
     private static ColorBlock defaultColorBlock;
 
-    public GameObject[] OptionsParameters;
+    public GameObject [] PlayerControl;
+    public GameObject[] Option;
+
+    private static GameObject currentOption;
 
     private void Awake()
     {
@@ -85,32 +87,50 @@ public class Options : MonoBehaviour
         }
     }
 
+    public void SwitchOption(GameObject _option)
+    { 
+        if (currentOption != _option)
+        {
+            if (currentOption != null) currentOption.GetComponent<Button>().interactable = true;
+
+            currentOption = _option;
+            currentOption.GetComponent<Button>().Select();
+            currentOption.GetComponent<Button>().interactable = false;
+            foreach (GameObject option in Option)
+            {
+                if (option.name != currentOption.name) option.SetActive(false);
+                else option.SetActive(true);
+            }
+        }
+    } // Выбор опции
     public void ChangeKey(GameObject _button)
     {
-        if (IsButtonChanged && changedButton != _button)
+        if (IsButtonChanged && changedButton == _button)
         {
             changedKey = KeyCode.None;
             changedButton.GetComponent<Button>().colors = defaultColorBlock;
             IsButtonChanged = false;
         }
-
-        changedButton = _button;
-
-        for (int i = 0; i < GameObject.Find("Player Control").transform.GetChild(1).childCount; i++)
+        else
         {
-            if (OptionsParameters[i] != _button) OptionsParameters[i].GetComponent<Button>().colors = defaultColorBlock;
+            changedButton = _button;
+
+            for (int i = 0; i < PlayerControl.Length; i++)
+            {
+                if (PlayerControl[i] != _button) PlayerControl[i].GetComponent<Button>().colors = defaultColorBlock;
+            }
+
+            ColorBlock _colorBlock = defaultColorBlock;
+            _colorBlock.highlightedColor = Color.blue;
+            _colorBlock.normalColor = Color.blue;
+
+            _button.GetComponent<Button>().colors = _colorBlock;
+            IsButtonChanged = true;
         }
-
-        ColorBlock _colorBlock = defaultColorBlock;
-        _colorBlock.highlightedColor = Color.blue;
-        _colorBlock.normalColor = Color.blue;
-
-        _button.GetComponent<Button>().colors = _colorBlock;
-        IsButtonChanged = true;
-    }
+    } // Смена клавиши
     public void ChangeTipsOn()
     {
-        TipsOn = OptionsParameters[7].GetComponent<Toggle>().isOn;
+        //TipsOn = OptionsParameters[7].GetComponent<Toggle>().isOn;
     }
     public void Reset()
     {
@@ -126,16 +146,15 @@ public class Options : MonoBehaviour
         CameraAttachedDepth = DefaultCameraAttachedDepth;
 
         // Сброс клавиш
-        OptionsParameters[0].GetComponentInChildren<Text>().text = DefaultRight.ToString();
-        OptionsParameters[1].GetComponentInChildren<Text>().text = DefaultLeft.ToString();
-        OptionsParameters[2].GetComponentInChildren<Text>().text = DefaultJump.ToString();
-        OptionsParameters[3].GetComponentInChildren<Text>().text = DefaultInteraction.ToString();
-        OptionsParameters[4].GetComponentInChildren<Text>().text = DefaultMeleeAttack.ToString();
-        OptionsParameters[5].GetComponentInChildren<Text>().text = DefaultRangeAttack.ToString();
-        OptionsParameters[6].GetComponentInChildren<Text>().text = DefaultGameMenu.ToString();
+        PlayerControl[0].GetComponentInChildren<Text>().text = DefaultRight.ToString();
+        PlayerControl[1].GetComponentInChildren<Text>().text = DefaultLeft.ToString();
+        PlayerControl[2].GetComponentInChildren<Text>().text = DefaultJump.ToString();
+        PlayerControl[3].GetComponentInChildren<Text>().text = DefaultInteraction.ToString();
+        PlayerControl[4].GetComponentInChildren<Text>().text = DefaultMeleeAttack.ToString();
+        PlayerControl[5].GetComponentInChildren<Text>().text = DefaultRangeAttack.ToString();
+        PlayerControl[6].GetComponentInChildren<Text>().text = DefaultGameMenu.ToString();
 
         // Сброс подсказок
-        OptionsParameters[7].GetComponent<Toggle>().isOn = DefaultTipsOn;
-    }
-    
+        //OptionsParameters[7].GetComponent<Toggle>().isOn = DefaultTipsOn;
+    } // Сброс настроек
 }

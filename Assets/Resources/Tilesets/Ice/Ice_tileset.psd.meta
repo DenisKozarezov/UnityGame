@@ -527,6 +527,15 @@ TextureImporter:
   - first:
       213: -4553811959296916147
     second: Ice_tileset_48
+  - first:
+      213: -7852082746097244654
+    second: Ice_tileset_49
+  - first:
+      213: -2097926539146096955
+    second: Ice_tileset_50
+  - first:
+      213: -929020499430993113
+    second: Ice_tileset_51
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -1398,6 +1407,52 @@ TextureImporter:
       bones: []
       spriteID: 241850a0db5fb6ed0800000000000000
       internalID: -2419570182515752638
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ice_tileset_34
+      rect:
+        serializedVersion: 2
+        x: 50
+        y: 316
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1da43c0aec51e3b20800000000000000
+      internalID: 3115951969391561425
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Ice_tileset_35
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 349
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape:
+      - - {x: -16, y: 8}
+        - {x: -16, y: -16}
+        - {x: 16, y: -16}
+        - {x: 16, y: 8}
+      tessellationDetail: 0
+      bones: []
+      spriteID: d3b84b04ff887d670800000000000000
+      internalID: 8563463846351899453
       vertices: []
       indices: 
       edges: []
