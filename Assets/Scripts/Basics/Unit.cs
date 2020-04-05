@@ -15,7 +15,7 @@ public class Unit : MonoBehaviour
     public bool Movable = true;
     public bool Invulnerable = false;
     public bool IsDead = false;
-    public bool CanDoubleJump;
+    public bool CanJump;
     public bool OnGround;
 
     [Header("Характеристики")]
@@ -28,7 +28,7 @@ public class Unit : MonoBehaviour
     public float JumpScale = 4f;
 
     private int DoubleJumpsCount { set; get; } = 0;
-    public int DoubleJumpsMax = 1;
+    public int DoubleJumpsMax = 0;
 
     [Header("Аниматор")]
     public Animator Animator;
@@ -52,7 +52,7 @@ public class Unit : MonoBehaviour
     }
     public void Jump()
     {
-        if (Movable && Commandable)
+        if (CanJump && Commandable)
         {
             if (OnGround)
             {
@@ -61,7 +61,7 @@ public class Unit : MonoBehaviour
             }
             else
             {
-                if (CanDoubleJump && DoubleJumpsCount < DoubleJumpsMax)
+                if (DoubleJumpsCount < DoubleJumpsMax)
                 {
                     GetComponent<Rigidbody2D>().velocity = Vector2.up * JumpScale;
                     DoubleJumpsCount++;
@@ -116,11 +116,17 @@ public class Unit : MonoBehaviour
     // КОЛЛИЗИЯ
     private void OnCollisionEnter2D(Collision2D collision)
     {
+        // Касание с землёй
         if (collision.transform.tag == "Ground")
         {
-            OnGround = true;
-            GetComponent<Rigidbody2D>().inertia = 0;
-            DoubleJumpsCount = 0;
+            foreach (ContactPoint2D contact in collision.contacts)
+            {
+                if (contact.normal == Vector2.up) // Если нормаль хотя бы одной точки касания смотрит вверх - персонаж на земле
+                {
+                    OnGround = true;
+                    DoubleJumpsCount = 0;
+                }
+            }
         }
     }
 

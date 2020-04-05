@@ -5,24 +5,29 @@ using UnityEngine.Rendering;
 
 [RequireComponent(typeof(CameraScript))]
 public class CameraScript : MonoBehaviour
-{
-    public static float normalZoom { private set; get; } // Нормальное приближение при старте игры
-    public static float currentZoom { private set; get; } // Текущее приближение камеры
-    
-    /* Привязка камеры к юниту */
-    public static Unit currentTarget { private set; get; } // Юнит, к которому привязана камера.    
-    public static float attachedDepth { private set; get; } = Options.CameraAttachedDepth; // Доп. высота Y' отн. Yцентр.
-
-    /* Состояние камеры: ЗАТУХАНИЕ, ПОЯВЛЕНИЕ */
-    public enum FadeState { IN, OUT }
-    public static FadeState CameraFadeStatus { private set; get; } = FadeState.OUT;
-    
+{    
     private void Awake()
     {
-        normalZoom = Camera.main.orthographicSize;
+        NormalZoom = Camera.main.orthographicSize;
+    }
+    private void Update()
+    {
+        if (AttachedTarget != null)
+        {
+            switch (AttachmentType)
+            {
+                case CameraAttachmentType.HORIZONTAL:
+                    Camera.main.gameObject.transform.position = new Vector3(AttachedTarget.transform.position.x, attachedPosition.y, attachedPosition.z);
+                    break;
+                case CameraAttachmentType.VERTICAL:
+                    Camera.main.gameObject.transform.position = new Vector3(attachedPosition.x, AttachedTarget.transform.position.y + attachedPosition.y, attachedPosition.z);
+                    break;
+            }
+        }
     }
     
-    /* Передвижение камеры */
+    
+    /* ПЕРЕДВИЖЕНИЕ КАМЕРЫ */
     public static void InstanceMoveTo(Vector2 _direction)
     {
         Vector3 _camera_pos = Camera.main.gameObject.transform.position;
@@ -53,22 +58,44 @@ public class CameraScript : MonoBehaviour
         Camera.main.GetComponent<MonoBehaviour>().StopCoroutine(InterpolatedMove(_direction, _time));
     }
 
-    public static void AttachToUnit(Unit _target)
+
+    /* ПРИВЯЗКА КАМЕРЫ К ЮНИТУ */
+    public static Unit AttachedTarget { private set; get; } // Цель, к которой привязана камера.    
+    public static float AttachedDepth { private set; get; } = Options.CameraAttachedDepth; // Доп. высота Y отн. цели
+    private static Vector3 attachedPosition { set; get; }
+    public enum CameraAttachmentType { VERTICAL, HORIZONTAL, BOTH } // Оси привязки
+    public static CameraAttachmentType AttachmentType { private set; get; } = CameraAttachmentType.HORIZONTAL;
+    public static void AttachToUnit(Unit _target, CameraAttachmentType _attachmentType)
     {
-        if (_target != null)
+        AttachedTarget = _target;        
+        AttachmentType = _attachmentType;
+
+        switch (_attachmentType)
         {
-            currentTarget = _target;
-            Camera.main.gameObject.transform.SetParent(_target.transform);
-            Camera.main.gameObject.transform.localPosition = new Vector3(0, attachedDepth, Camera.main.gameObject.transform.position.z);
+            case CameraAttachmentType.BOTH:
+                attachedPosition = new Vector3(0, AttachedDepth, Camera.main.transform.position.z);
+                Camera.main.transform.SetParent(AttachedTarget.transform);
+                Camera.main.gameObject.transform.localPosition = attachedPosition;
+                break;
+            case CameraAttachmentType.HORIZONTAL:
+                attachedPosition = new Vector3(0, Camera.main.gameObject.transform.position.y + AttachedDepth, Camera.main.gameObject.transform.position.z);
+                break;
+            case CameraAttachmentType.VERTICAL:
+                attachedPosition = new Vector3(Camera.main.gameObject.transform.position.x, AttachedDepth, Camera.main.gameObject.transform.position.z);
+                break;
         }
     }
     public static void Detach()
     {
-        currentTarget = null;
+        AttachedTarget = null;
+        attachedPosition = Vector3.zero;
         Camera.main.transform.SetParent(GameObject.Find("Level").transform.parent);
     }
 
-    /* Отдаление/приближение камеры на величину _zoom */
+    
+    /* ОТДАЛЕНИЕ/ПРИБЛИЖЕНИЕ КАМЕРЫ НА ВЕЛИЧИНУ _zoom */
+    public static float NormalZoom { private set; get; } // Стандартное значение приближения при старте игры
+    public static float CurrentZoom { private set; get; } // Текущее приближение камеры
     public static void Zoom(float _zoom, float _time)
     {
         Camera.main.GetComponent<MonoBehaviour>().StartCoroutine(InterpolatedZoom(_zoom, _time));
@@ -76,18 +103,21 @@ public class CameraScript : MonoBehaviour
     private static IEnumerator InterpolatedZoom(float _zoom, float _time)
     {
         float startTime = Time.time;
-        float distance = Camera.main.orthographicSize;
+        float startZoom = Camera.main.orthographicSize;
         while (Camera.main.orthographicSize != _zoom)
         {
             float elapsedTime = Time.time - startTime;
-            Camera.main.orthographicSize = Mathf.Lerp(distance, _zoom, elapsedTime / _time);
-            currentZoom = Camera.main.orthographicSize;
+            Camera.main.orthographicSize = Mathf.Lerp(startZoom, _zoom, elapsedTime / _time);
+            CurrentZoom = Camera.main.orthographicSize;
             yield return null;
         }
         Camera.main.GetComponent<MonoBehaviour>().StopCoroutine(InterpolatedZoom(_zoom, _time));
     }
 
-    /* Затухание/появление камеры */
+    
+    /* ЗАТУХАНИЕ/ПОЯВЛЕНИЕ ЭКРАНА */
+    public enum FadeState { IN, OUT, NONE } // Состояния экрана: { ЧЁРНЫЙ ЭКРАН, ПОЯВЛЕНИЕ, ОБЫЧНОЕ }
+    public static FadeState CameraFadeStatus { private set; get; } = FadeState.NONE;
     public static void Fade(FadeState _fadeState, float _time)
     {
         Camera.main.GetComponent<MonoBehaviour>().StartCoroutine(InterpolatedFade(_fadeState, _time));

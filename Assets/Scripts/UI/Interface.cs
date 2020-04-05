@@ -23,7 +23,7 @@ public class Interface : MonoBehaviour
 
     public static bool Hidden { private set; get; } = false;
 
-    private void FixedUpdate()
+    private void Update()
     {
         if (Input.GetKeyDown(Options.GameMenu))
         {

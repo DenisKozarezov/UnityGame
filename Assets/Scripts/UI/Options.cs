@@ -27,7 +27,7 @@ public class Options : MonoBehaviour
     public static float CameraAttachedDepth { set; get; } = DefaultCameraAttachedDepth;
 
     /* ------------------------------------ */
-    private static bool IsButtonChanged = false;
+    public static bool IsKeyBeingChanging { private set; get; } = false;
     private static GameObject changedButton;
     private static KeyCode changedKey = KeyCode.None;
     private static ColorBlock defaultColorBlock;
@@ -51,7 +51,7 @@ public class Options : MonoBehaviour
         {
             changedKey = Event.current.keyCode;
 
-            if (IsButtonChanged)
+            if (IsKeyBeingChanging)
             {
                 switch (changedButton.name)
                 {
@@ -79,10 +79,7 @@ public class Options : MonoBehaviour
                 }
                 changedButton.GetComponentInChildren<Text>().text = changedKey.ToString();
 
-                changedKey = KeyCode.None;
-                changedButton.GetComponent<Button>().colors = defaultColorBlock;
-                changedButton = null;
-                IsButtonChanged = false;
+                ChangeKeyOff();
             }
         }
     }
@@ -105,11 +102,9 @@ public class Options : MonoBehaviour
     } // Выбор опции
     public void ChangeKey(GameObject _button)
     {
-        if (IsButtonChanged && changedButton == _button)
+        if (IsKeyBeingChanging && changedButton == _button)
         {
-            changedKey = KeyCode.None;
-            changedButton.GetComponent<Button>().colors = defaultColorBlock;
-            IsButtonChanged = false;
+            ChangeKeyOff();
         }
         else
         {
@@ -125,9 +120,20 @@ public class Options : MonoBehaviour
             _colorBlock.normalColor = Color.blue;
 
             _button.GetComponent<Button>().colors = _colorBlock;
-            IsButtonChanged = true;
+            IsKeyBeingChanging = true;
         }
     } // Смена клавиши
+    public void ChangeKeyOff()
+    {
+        changedKey = KeyCode.None;
+        if (changedButton != null)
+        {
+            changedButton.GetComponent<Button>().colors = defaultColorBlock;
+            changedButton = null;
+        }
+        IsKeyBeingChanging = false;
+    }  // Сброс режима смены клавиши
+
     public void ChangeTipsOn()
     {
         //TipsOn = OptionsParameters[7].GetComponent<Toggle>().isOn;
