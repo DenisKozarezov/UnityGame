@@ -35,6 +35,30 @@ TextureImporter:
   - first:
       213: -9009348813972860545
     second: Environment_tileset_5
+  - first:
+      213: 1087017443796394502
+    second: Environment_tileset_6
+  - first:
+      213: -1099564950726758766
+    second: Environment_tileset_7
+  - first:
+      213: 6003384124281138357
+    second: Environment_tileset_8
+  - first:
+      213: 25913929669979313
+    second: Environment_tileset_9
+  - first:
+      213: -5690735498861956779
+    second: Environment_tileset_10
+  - first:
+      213: 2497787664218402327
+    second: Environment_tileset_11
+  - first:
+      213: 4575362965252127176
+    second: Environment_tileset_12
+  - first:
+      213: -9155874602166719866
+    second: Environment_tileset_13
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -128,7 +152,7 @@ TextureImporter:
         width: 86
         height: 47
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -149,7 +173,7 @@ TextureImporter:
         width: 150
         height: 39
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -170,7 +194,7 @@ TextureImporter:
         width: 33
         height: 32
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -191,7 +215,7 @@ TextureImporter:
         width: 33
         height: 32
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -212,7 +236,7 @@ TextureImporter:
         width: 27
         height: 22
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -233,7 +257,7 @@ TextureImporter:
         width: 41
         height: 30
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -241,6 +265,174 @@ TextureImporter:
       bones: []
       spriteID: f719f8dbcfc58f280800000000000000
       internalID: -9009348813972860545
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Environment_tileset_6
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 363
+        width: 65
+        height: 49
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 602232a1b9cd51f00800000000000000
+      internalID: 1087017443796394502
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Environment_tileset_7
+      rect:
+        serializedVersion: 2
+        x: 137
+        y: 368
+        width: 63
+        height: 29
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 29e2678c08f8db0f0800000000000000
+      internalID: -1099564950726758766
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Environment_tileset_8
+      rect:
+        serializedVersion: 2
+        x: 227
+        y: 359
+        width: 80
+        height: 54
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5bc2ff1cd0e405350800000000000000
+      internalID: 6003384124281138357
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Environment_tileset_9
+      rect:
+        serializedVersion: 2
+        x: 319
+        y: 364
+        width: 58
+        height: 43
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1bca6bce4901c5000800000000000000
+      internalID: 25913929669979313
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Environment_tileset_10
+      rect:
+        serializedVersion: 2
+        x: 388
+        y: 380
+        width: 31
+        height: 9
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 551b0afe6327601b0800000000000000
+      internalID: -5690735498861956779
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Environment_tileset_11
+      rect:
+        serializedVersion: 2
+        x: 109
+        y: 333
+        width: 5
+        height: 18
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 71e271295ace9a220800000000000000
+      internalID: 2497787664218402327
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Environment_tileset_12
+      rect:
+        serializedVersion: 2
+        x: 28
+        y: 217
+        width: 236
+        height: 136
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8c9b4562064fe7f30800000000000000
+      internalID: 4575362965252127176
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Environment_tileset_13
+      rect:
+        serializedVersion: 2
+        x: 391
+        y: 56
+        width: 92
+        height: 361
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 68ae4d92f8ccfe080800000000000000
+      internalID: -9155874602166719866
       vertices: []
       indices: 
       edges: []

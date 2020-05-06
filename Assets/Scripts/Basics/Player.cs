@@ -19,17 +19,38 @@ public class Player : MonoBehaviour {
     {     
         if (Input.GetKey(Options.Right))
         {
-            GetComponent<Unit>().MoveTo(Vector2.right);
+            GetComponent<Unit>().InstanceMoveTo(Vector2.right * Hero.MovementSpeed * Time.deltaTime);
         }
 
         if (Input.GetKey(Options.Left))
         {
-            GetComponent<Unit>().MoveTo(Vector2.left);
+            GetComponent<Unit>().InstanceMoveTo(Vector2.left * Hero.MovementSpeed * Time.deltaTime);
         }
 
         if (Input.GetKeyDown(Options.Jump))
         {
             GetComponent<Unit>().Jump();
         }        
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.tag == "Enemy")
+        {
+            if (collision == collision.gameObject.GetComponent<Enemy>().AggressionCollider)
+            {
+                collision.gameObject.GetComponent<Enemy>().Taunt(Hero);                
+            }
+        }
+    }
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.gameObject.tag == "Enemy")
+        {
+            if (collision == collision.gameObject.GetComponent<Enemy>().AggressionLossCollider && collision.gameObject.GetComponent<Unit>().Target == Hero)
+            {
+                collision.gameObject.GetComponent<Enemy>().Lose();
+            }
+        }
     }
 }

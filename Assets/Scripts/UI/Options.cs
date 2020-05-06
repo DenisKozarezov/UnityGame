@@ -7,13 +7,17 @@ public class Options : MonoBehaviour
     // СТАНДАРТНЫЕ ЗНАЧЕНИЯ ОПЦИЙ
     private static KeyCode DefaultRight { set; get; } = KeyCode.D;
     private static KeyCode DefaultLeft { set; get; } = KeyCode.A;
-    private static KeyCode DefaultJump { set; get; } = KeyCode.W;
+    private static KeyCode DefaultJump { set; get; } = KeyCode.Space;
     private static KeyCode DefaultInteraction { set; get; } = KeyCode.E;
-    private static KeyCode DefaultMeleeAttack { set; get; } = KeyCode.Space;
+    private static KeyCode DefaultMeleeAttack { set; get; } = KeyCode.Mouse0;
     private static KeyCode DefaultRangeAttack { set; get; } = KeyCode.LeftShift;
     private static KeyCode DefaultGameMenu { set; get; } = KeyCode.Escape;
+    private static KeyCode DefaultDeveloperPanel { set; get; } = KeyCode.BackQuote;
+
     private static bool DefaultTipsOn { set; get; } = true;
     private static float DefaultCameraAttachedDepth { set; get; } = 1.3f;
+    private static float DefaultCameraAttachedSpeed { set; get; } = 0.8f;
+    private static float DefaultCameraAttachedThreshold { set; get; } = 0.3f;
 
     // ТЕКУЩИЕ ЗНАЧЕНИЯ ОПЦИЙ
     public static KeyCode Right { set; get; } = DefaultRight;
@@ -23,17 +27,30 @@ public class Options : MonoBehaviour
     public static KeyCode MeleeAttack { set; get; } = DefaultMeleeAttack;
     public static KeyCode RangeAttack { set; get; } = DefaultRangeAttack;
     public static KeyCode GameMenu { set; get; } = DefaultGameMenu;
+    public static KeyCode DeveloperPanel { set; get; } = DefaultDeveloperPanel;
+
     public static bool TipsOn { set; get; } = DefaultTipsOn;
     public static float CameraAttachedDepth { set; get; } = DefaultCameraAttachedDepth;
+    public static float CameraAttachedSpeed { set; get; } = DefaultCameraAttachedSpeed;
+    public static float CameraAttachedThreshold { set; get; } = DefaultCameraAttachedThreshold;
 
     /* ------------------------------------ */
     public static bool IsKeyBeingChanging { private set; get; } = false;
     private static GameObject changedButton;
     private static KeyCode changedKey = KeyCode.None;
     private static ColorBlock defaultColorBlock;
+    
+    [Header("Виды опций: Игра, Управление, Звук")]
+    public GameObject[] OptionsType;
 
-    public GameObject [] PlayerControl;
-    public GameObject[] Option;
+    [Header("Настройки игры")]
+    public GameObject[] GameOptions;
+
+    [Header("Настройки управления")]
+    public GameObject [] PlayerControlOptions;
+
+    [Header("Настройки звука")]
+    public GameObject[] SoundOptions;
 
     private static GameObject currentOption;
 
@@ -44,6 +61,8 @@ public class Options : MonoBehaviour
         defaultColorBlock.pressedColor = Color.grey;
         defaultColorBlock.selectedColor = Color.white;
         defaultColorBlock.colorMultiplier = 1;
+
+        Reset();
     }
     private void OnGUI()
     {
@@ -76,6 +95,9 @@ public class Options : MonoBehaviour
                     case "Game Menu Button":
                         GameMenu = changedKey;
                         break;
+                    case "Developer's Panel Button":
+                        DeveloperPanel = changedKey;
+                        break;
                 }
                 changedButton.GetComponentInChildren<Text>().text = changedKey.ToString();
 
@@ -93,7 +115,7 @@ public class Options : MonoBehaviour
             currentOption = _option;
             currentOption.GetComponent<Button>().Select();
             currentOption.GetComponent<Button>().interactable = false;
-            foreach (GameObject option in Option)
+            foreach (GameObject option in OptionsType)
             {
                 if (option.name != currentOption.name) option.SetActive(false);
                 else option.SetActive(true);
@@ -110,9 +132,9 @@ public class Options : MonoBehaviour
         {
             changedButton = _button;
 
-            for (int i = 0; i < PlayerControl.Length; i++)
+            for (int i = 0; i < PlayerControlOptions.Length; i++)
             {
-                if (PlayerControl[i] != _button) PlayerControl[i].GetComponent<Button>().colors = defaultColorBlock;
+                if (PlayerControlOptions[i] != _button) PlayerControlOptions[i].GetComponent<Button>().colors = defaultColorBlock;
             }
 
             ColorBlock _colorBlock = defaultColorBlock;
@@ -134,13 +156,23 @@ public class Options : MonoBehaviour
         IsKeyBeingChanging = false;
     }  // Сброс режима смены клавиши
 
+    public void SetCameraAttachedSpeed(GameObject _slider)
+    {
+        CameraAttachedSpeed = _slider.GetComponent<Slider>().value;
+    }
+
+    public void SetCameraAttachedThreshold(GameObject _scrollbar)
+    {
+        CameraAttachedThreshold = _scrollbar.GetComponentInChildren<Scrollbar>().value;
+    }
+
     public void ChangeTipsOn()
     {
         //TipsOn = OptionsParameters[7].GetComponent<Toggle>().isOn;
     }
     public void Reset()
     {
-        // Сброс переменных
+        // СБРОС КЛАВИШ          
         Right = DefaultRight;
         Left = DefaultLeft;
         Jump = DefaultJump;
@@ -148,19 +180,22 @@ public class Options : MonoBehaviour
         MeleeAttack = DefaultMeleeAttack;
         RangeAttack = DefaultRangeAttack;
         GameMenu = DefaultGameMenu;
-        TipsOn = DefaultTipsOn;
-        CameraAttachedDepth = DefaultCameraAttachedDepth;
+        DeveloperPanel = DefaultDeveloperPanel;
 
-        // Сброс клавиш
-        PlayerControl[0].GetComponentInChildren<Text>().text = DefaultRight.ToString();
-        PlayerControl[1].GetComponentInChildren<Text>().text = DefaultLeft.ToString();
-        PlayerControl[2].GetComponentInChildren<Text>().text = DefaultJump.ToString();
-        PlayerControl[3].GetComponentInChildren<Text>().text = DefaultInteraction.ToString();
-        PlayerControl[4].GetComponentInChildren<Text>().text = DefaultMeleeAttack.ToString();
-        PlayerControl[5].GetComponentInChildren<Text>().text = DefaultRangeAttack.ToString();
-        PlayerControl[6].GetComponentInChildren<Text>().text = DefaultGameMenu.ToString();
+        PlayerControlOptions[0].GetComponentInChildren<Text>().text = DefaultRight.ToString();
+        PlayerControlOptions[1].GetComponentInChildren<Text>().text = DefaultLeft.ToString();
+        PlayerControlOptions[2].GetComponentInChildren<Text>().text = DefaultJump.ToString();
+        PlayerControlOptions[3].GetComponentInChildren<Text>().text = DefaultInteraction.ToString();
+        PlayerControlOptions[4].GetComponentInChildren<Text>().text = DefaultMeleeAttack.ToString();
+        PlayerControlOptions[5].GetComponentInChildren<Text>().text = DefaultRangeAttack.ToString();
+        PlayerControlOptions[6].GetComponentInChildren<Text>().text = DefaultGameMenu.ToString();
+        PlayerControlOptions[7].GetComponentInChildren<Text>().text = DefaultDeveloperPanel.ToString();       
+            
 
-        // Сброс подсказок
-        //OptionsParameters[7].GetComponent<Toggle>().isOn = DefaultTipsOn;
+        // СБРОС ИГРОВЫХ НАСТРОЕК        
+        CameraAttachedSpeed = DefaultCameraAttachedSpeed;
+
+        GameOptions[0].GetComponentInChildren<Slider>().value = DefaultCameraAttachedSpeed;
+        GameOptions[1].GetComponentInChildren<Scrollbar>().value = DefaultCameraAttachedThreshold;
     } // Сброс настроек
 }

@@ -11,6 +11,7 @@ public class Interface : MonoBehaviour
     public GameObject OptionsPanel;
     public GameObject GameMenuPanel;
     public GameObject BossBar;
+    public GameObject DeveloperPanel;
 
     public static GameObject CurrentPanel { set; get; } = null;
 
@@ -27,11 +28,23 @@ public class Interface : MonoBehaviour
     {
         if (Input.GetKeyDown(Options.GameMenu))
         {
-            if (!Game.IsDefeat && !GameMenuPanel.activeInHierarchy)
-            {
-                Open(GameMenuPanel);
-            }
+            if (!Game.IsDefeat && !GameMenuPanel.activeInHierarchy) Open(GameMenuPanel);
             else Close();
+        }
+
+        if (Input.GetKeyDown(Options.DeveloperPanel))
+        {
+            if (!DeveloperPanel.activeInHierarchy)
+            {
+                Open(DeveloperPanel);
+                Player.Hero.Commandable = false;
+            }
+            else
+            {
+                Close();
+                DeveloperPanel.transform.GetChild(1).GetComponent<InputField>().text = "";
+                Player.Hero.Commandable = true;
+            }
         }
     }
 

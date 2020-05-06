@@ -2,20 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class AbilitiesBank
-{
-    public static Ability [] Abilities = new Ability[10];
-
-    public static Ability GetAbilityByName(string _name)
-    {
-        foreach (Ability ability in Abilities)
-        {
-            if (ability != null && ability.Name == _name) return ability;
-        }
-        return null;
-    }
-}
-public class Ability : MonoBehaviour
+public class Ability : ScriptableObject
 {    
     public enum AbilityType { TARGET, NONTARGET, POINT }
     public string Name { set; get; }
@@ -47,7 +34,7 @@ public class Ability : MonoBehaviour
     {
         PDelegate = _action;
     }
-    public void Cast()
+    public virtual void Cast()
     {
         if (IsReady)
         {
@@ -68,6 +55,35 @@ public class Ability : MonoBehaviour
     }
 }
 
+public class Move : Ability
+{
+    public void Cast(Unit _caster, Vector3 _direction)
+    {
+        Point = _direction;
+        _caster.transform.Translate(_direction * _caster.MovementSpeed * Time.deltaTime);
+    }
+}
+public class Attack : Ability
+{
+
+}
+
+public enum ProjectileType { FIRE, POISION }
+public class Shoot : Ability
+{
+    public void Cast(Unit _caster, Unit _target, ProjectileType _projectileType)
+    {
+        Vector3 targetPosition = _target.transform.position;
+        
+        switch (_projectileType)
+        {
+            case ProjectileType.FIRE:
+                GameObject projectile = Instantiate(GameObject.CreatePrimitive(PrimitiveType.Capsule), _caster.transform.position, Quaternion.identity);
+                projectile.AddComponent<Projectile>().Shoot(projectile.transform.position, _target.transform.position);
+                break;
+        }
+    }
+}
 
 /* Действия способностей */
 static class Methods

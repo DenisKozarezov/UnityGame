@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Ground
   - Level's Bound
+  - Obstacle
+  - Enemy
   layers:
   - Default
   - TransparentFX
@@ -57,4 +59,7 @@ TagManager:
     locked: 0
   - name: Units
     uniqueID: 2721555071
+    locked: 0
+  - name: Foreground
+    uniqueID: 2022647097
     locked: 0

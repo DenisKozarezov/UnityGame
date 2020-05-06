@@ -8,6 +8,23 @@ public class Game : MonoBehaviour
     public static bool IsDefeat { private set; get; } = false;
     public static bool IsPaused { private set; get; } = false;
 
+    private void Start()
+    {
+        Initialize();
+    }
+    public static void Initialize()
+    {
+        foreach (Unit unit in Unit.Units)
+        {
+            if (unit != null)
+            {
+                if (unit.tag == "Enemy")
+                {
+                    if (unit.GetComponent<Enemy>().OnPatrol) unit.GetComponent<Enemy>().Patrol();
+                }
+            }
+        }
+    }
     public static void Defeat()
     {
         IsDefeat = true;
@@ -30,7 +47,7 @@ public class Game : MonoBehaviour
         CameraScript.Fade(CameraScript.FadeState.IN, _time);
         yield return new WaitForSeconds(_time);
 
-        Player.Hero.Remove();
+        //Player.Hero.Remove();
         Interface.Show(false);
         GameObject.Find("Canvas").GetComponent<Interface>().Close(GameObject.Find("Canvas").GetComponent<Interface>().GameMenuPanel);
         GameObject.Find("Canvas").GetComponent<Interface>().Open(GameObject.Find("Canvas").GetComponent<Interface>().DefeatPanel);

@@ -20,7 +20,7 @@ public class PlayerBar : MonoBehaviour
         if (_type == PlayerBarType.HEALTH) PlayerHealthFrozen = true;
         else PlayerManaFrozen = true;
 
-        GameObject.Find("Canvas").GetComponent<MonoBehaviour>().StartCoroutine(InterpolatedBar(_type, _from, _to, _time));
+        if (Player.Hero != null) GameObject.Find("Canvas").GetComponent<MonoBehaviour>().StartCoroutine(InterpolatedBar(_type, _from, _to, _time));
     }
     public static IEnumerator InterpolatedBar(PlayerBarType _type, float _from, float _to, float _time)
     {
