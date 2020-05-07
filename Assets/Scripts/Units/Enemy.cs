@@ -4,11 +4,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Security.Cryptography;
 using UnityEditor;
-using UnityEditor.Experimental.Networking.PlayerConnection;
-using UnityEditor.Experimental.TerrainAPI;
-using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.SocialPlatforms;
 using Vector2 = UnityEngine.Vector2;
 using Vector3 = UnityEngine.Vector3;
 
@@ -44,7 +40,7 @@ public class Enemy : MonoBehaviour
         if (AggressionCollider != null) AggressionCollider.radius = AggressionRadius;
         if (AggressionLossCollider != null) AggressionLossCollider.radius = AggressionLossRadius;
 
-        if (!EditorApplication.isPlaying)
+        if (!Application.isPlaying)
         {
             if (OnPatrol)
             {
@@ -80,18 +76,19 @@ public class Enemy : MonoBehaviour
         RandomNumberGenerator.Create();
         int random = UnityEngine.Random.Range(0, 2);
        
-        if (random == 0) GetComponent<Unit>().MoveTo(LeftBound); else GetComponent<Unit>().MoveTo(RightBound);
+        if (random == 0) GetComponent<Unit>().Queue.Add(new Order(method => GetComponent<Unit>().MoveTo(LeftBound))); 
+        else GetComponent<Unit>().Queue.Add(new Order(method => GetComponent<Unit>().MoveTo(RightBound)));
 
         while (OnPatrol)
         {
             if (Vector2.Distance(new Vector2(transform.position.x, transform.position.y), LeftBound) == 0)
             {
-                GetComponent<Unit>().MoveTo(RightBound);
+                GetComponent<Unit>().Queue.Add(new Order(method => GetComponent<Unit>().MoveTo(RightBound)));
             }
 
             if (Vector2.Distance(new Vector2(transform.position.x, transform.position.y), RightBound) == 0)
             {
-                GetComponent<Unit>().MoveTo(LeftBound);
+                GetComponent<Unit>().Queue.Add(new Order(method => GetComponent<Unit>().MoveTo(LeftBound)));
             }            
             yield return null;
         }

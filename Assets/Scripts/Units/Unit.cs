@@ -1,17 +1,20 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using UnityEditor.Rendering;
+using System.Diagnostics.Tracing;
+using System.Net.Http;
+using System.Reflection;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(Collider2D))]
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(Rigidbody2D))]
+
 public class Unit : MonoBehaviour
 {
-    public static Unit[] Units = new Unit[100];
+    public static Unit[] Units { private set; get; } = new Unit[100];
 
     [Header("Статус")]
     public bool Paused = false;
@@ -19,6 +22,8 @@ public class Unit : MonoBehaviour
     public bool Movable = true;
     public bool Invulnerable = false;
     public bool IsDead = false;
+    public bool Stunned = false;
+    public bool Silenced = false;
     public bool CanJump;
     public bool OnGround;
     
@@ -29,7 +34,9 @@ public class Unit : MonoBehaviour
     public byte MaxMana;
 
     public Unit Target { set; get; }
+
     public enum UnitType { MELEE, RANGE }
+
     [Header("Бой")]
     [SerializeField]
     UnitType Type = UnitType.MELEE;
@@ -53,9 +60,29 @@ public class Unit : MonoBehaviour
     [Header("Коллайдер для физического взаимодействия")]
     public Collider2D RigidbodyCollider;
 
-    [HideInInspector]
-    public UnitOrderType Order { set; get; } = UnitOrderType.NULL;
-    public enum UnitOrderType { MOVING, STOPPED, ATTACKING, NULL }
+    public List<Order> Queue { private set; get; } = new List<Order>();
+    private Order CurrentOrder { set; get; }
+    
+    public void LateUpdate()
+    {
+        if (Queue.Count > 0)
+        {
+            if (Queue[0].State != global::Order.OrderState.EXECUTED)
+            {
+                if (Queue[0].State != global::Order.OrderState.PROCESSING)
+                {
+                    
+                    CurrentOrder = Queue[0];
+                    Queue[0].Execute();
+                }
+            }
+            else if (Queue[0].State == global::Order.OrderState.EXECUTED)
+            {
+                Queue.Remove(Queue[0]);
+                CurrentOrder = null;
+            }
+        }
+    }
 
     public Unit()
     {
@@ -69,13 +96,7 @@ public class Unit : MonoBehaviour
         }
     }
 
-    /*========= УМЕНИЯ =========*/
-
-    // Передвижение
-    public void InstanceMoveTo(Vector2 _direction)
-    {       
-        transform.Translate(new Vector3(_direction.x, _direction.y, transform.position.z));
-    } // Мгновенное перемещение в указанную точку
+    /*========== ПРИКАЗЫ ==========*/
     public void MoveTo(Vector2 _direction)
     {
         if (Movable && Commandable && !IsDead)
@@ -91,7 +112,6 @@ public class Unit : MonoBehaviour
 
             Animator.SetTrigger("Walk");
             StopCoroutine(Move(_direction));
-            Order = UnitOrderType.MOVING;
             StartCoroutine(Move(_direction));
         }
     } // Ходьба к указанной точке со скоростью MovementSpeed
@@ -108,6 +128,7 @@ public class Unit : MonoBehaviour
             }
             yield return null;
         }
+        CurrentOrder.Complete();
         StopCoroutine(Move(_direction));
     }
     public void MoveTo(Unit _target)
@@ -116,7 +137,6 @@ public class Unit : MonoBehaviour
         {
             StopCoroutine(Move(_target));
             Animator.SetTrigger("Walk");
-            Order = UnitOrderType.MOVING;
             StartCoroutine(Move(_target));
         }
     } // Преследование указанной цели со скоростью MovementSpeed
@@ -127,10 +147,47 @@ public class Unit : MonoBehaviour
             transform.position += new Vector3(_target.transform.position.x - transform.position.x, 0, 0).normalized * MovementSpeed * Time.deltaTime;
             yield return null;
         }
+        CurrentOrder.Complete();
         StopCoroutine(Move(_target));
     }
 
-    /*========= ПРОЧИЕ =========*/
+    public void Attack(Unit _target)
+    {
+        if (Commandable && !IsDead)
+        {
+            if (Target != null) StartCoroutine(AttackCoroutine());
+        }
+    } // Атака цели
+    private IEnumerator AttackCoroutine()
+    {
+        while (Target != null && !Target.IsDead && !IsDead)
+        {
+            if (Vector3.Distance(transform.position, Target.transform.position) <= GetAttackRadius(this, Target))
+            {
+                Damage(Target, AttackDamage);
+                yield return new WaitForSeconds(AttackCooldown);
+            }
+            else
+            {
+                bool flag = false;
+                foreach (Order order in Queue)
+                {
+                    if (order == new Order(method => MoveTo(Target)))
+                    {
+                        flag = true;
+                    }
+                }
+                if (!flag) Queue.Add(new Order(method => MoveTo(Target)));                
+                yield return null;
+            }
+        }
+
+        CurrentOrder.Complete();
+        Target = null;
+    }
+    /*==============================*/
+
+    /*========== ДЕЙСТВИЯ ==========*/
     public void Jump()
     {
         if (CanJump && Commandable)
@@ -150,41 +207,14 @@ public class Unit : MonoBehaviour
             }
         }       
     }
-        
-    public void Attack(Unit _target)
+    public void InstanceMoveTo(Vector2 _direction)
+    {       
+        transform.Translate(new Vector3(_direction.x, _direction.y, transform.position.z));
+    } // Мгновенное перемещение в указанную точку
+    public void Heal(Unit _target, byte _value)
     {
-        if (Target != null) StartCoroutine(AttackCoroutine());
-    } // Атака цели
-    private IEnumerator AttackCoroutine()
-    {
-        while (Target != null && !Target.IsDead)
-        {
-            if (Vector3.Distance(transform.position, Target.transform.position) <= GetAttackRadius(this, Target))
-            {
-                Order = UnitOrderType.ATTACKING;
-                Damage(Target, AttackDamage);
-                yield return new WaitForSeconds(AttackCooldown);
-            }
-            else
-            {
-                if (Order != UnitOrderType.MOVING)
-                {
-                    MoveTo(Target);
-                }
-                yield return null;
-            }
-        }
-
-        Target = null;
-    }
-    
-    public void Parry()
-    {
-
-    }
-    public void Deflect()
-    {
-
+        if (_target.Health + _value <= _target.MaxHealth) _target.Health += _value;
+        else _target.Health = _target.MaxHealth;
     }
     public void Damage(Unit _target, byte _value)
     {
@@ -192,16 +222,16 @@ public class Unit : MonoBehaviour
         {
             _target.Health -= _value;
 
-            if (_target == Player.Hero) PlayerBar.Update(PlayerBar.PlayerBarType.HEALTH, Player.Hero.Health, Player.Hero.Health, 2f);
+            if (_target == Player.Hero) PlayerBar.Update(PlayerBar.PlayerBarType.HEALTH, -_value, 1f);
         }
         else if (_target.Health - _value <= 0)
-        {
-            if (_target == Player.Hero) PlayerBar.Update(PlayerBar.PlayerBarType.HEALTH, Player.Hero.Health, 0, 2f);
-
+        {         
             _target.Health = 0;
             _target.IsDead = true;
             _target.Commandable = false;
             _target.Movable = false;
+
+            if (_target == Player.Hero) PlayerBar.Update(PlayerBar.PlayerBarType.HEALTH, -Player.Hero.Health, 1f);
         }
 
         if (Player.Hero.IsDead) Game.Defeat();
@@ -211,7 +241,16 @@ public class Unit : MonoBehaviour
         _target.Damage(_target, _target.MaxHealth);
         Remove();
     }
-    
+    public void Stop()
+    {
+        Queue.Clear();
+        CurrentOrder = null;
+        StopAllCoroutines();
+        Animator.SetTrigger("Idle");
+    }
+    /*===============================*/
+
+    /*=== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===*/
     private static float GetPhysicRadius(Unit _first, Unit _second)
     {
         float _firstRadius = Vector3.Distance(_first.RigidbodyCollider.bounds.center, _first.RigidbodyCollider.bounds.min);
@@ -235,13 +274,7 @@ public class Unit : MonoBehaviour
             return radius + _first.AttackRange;
         }
         return 0;
-    }
-    public void Stop()
-    {
-        StopAllCoroutines();
-        GetComponent<Unit>().Order = UnitOrderType.STOPPED;
-        Animator.SetTrigger("Idle");
-    }
+    }    
     public void Remove()
     {
         Destroy(gameObject);
@@ -254,7 +287,7 @@ public class Unit : MonoBehaviour
         }
     }
 
-    // КОЛЛИЗИЯ
+    /*========== КОЛЛИЗИЯ ==========*/
     private void OnCollisionEnter2D(Collision2D collision)
     {
         // Касание с землёй
@@ -268,13 +301,6 @@ public class Unit : MonoBehaviour
                     DoubleJumpsCount = 0;
                 }
             }
-        }
-    }
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.gameObject.name == "Fall Collider" && collision == RigidbodyCollider)
-        {                     
-            Kill(this);
         }
     }
 }

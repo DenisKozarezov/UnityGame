@@ -19,17 +19,20 @@ public class Player : MonoBehaviour {
     {     
         if (Input.GetKey(Options.Right))
         {
-            GetComponent<Unit>().InstanceMoveTo(Vector2.right * Hero.MovementSpeed * Time.deltaTime);
+            if (Hero.Movable && Hero.Commandable && !Hero.IsDead)
+                Hero.InstanceMoveTo(Vector2.right * Hero.MovementSpeed * Time.deltaTime);
         }
 
         if (Input.GetKey(Options.Left))
         {
-            GetComponent<Unit>().InstanceMoveTo(Vector2.left * Hero.MovementSpeed * Time.deltaTime);
+            if (Hero.Movable && Hero.Commandable && !Hero.IsDead)
+                Hero.InstanceMoveTo(Vector2.left * Hero.MovementSpeed * Time.deltaTime);
         }
 
         if (Input.GetKeyDown(Options.Jump))
         {
-            GetComponent<Unit>().Jump();
+            if (Hero.Movable && Hero.Commandable && !Hero.IsDead)
+                Hero.Jump();
         }        
     }
 

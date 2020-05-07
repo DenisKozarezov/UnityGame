@@ -781,11 +781,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 109754193}
+  - component: {fileID: 109754198}
+  - component: {fileID: 109754196}
   - component: {fileID: 109754194}
   - component: {fileID: 109754200}
   - component: {fileID: 109754199}
-  - component: {fileID: 109754198}
-  - component: {fileID: 109754196}
   - component: {fileID: 109754197}
   - component: {fileID: 109754201}
   - component: {fileID: 109754195}
@@ -891,7 +891,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AggressionRadius: 1.45
   AggressionLossRadius: 8.7
-  OnPatrol: 0
+  OnPatrol: 1
   PatrolLeftDistance: 11.7
   PatrolRightDistance: 11.7
   AggressionCollider: {fileID: 109754201}
@@ -934,6 +934,8 @@ MonoBehaviour:
   Movable: 1
   Invulnerable: 0
   IsDead: 0
+  Stunned: 0
+  Silenced: 0
   CanJump: 0
   OnGround: 0
   Health: 100
@@ -944,7 +946,7 @@ MonoBehaviour:
   AttackDamage: 20
   AttackRange: 0
   AttackCooldown: 1
-  MovementSpeed: 2
+  MovementSpeed: 3.23
   JumpScale: 4
   DoubleJumpsMax: 0
   Animator: {fileID: 109754199}
@@ -7619,7 +7621,7 @@ TilemapRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: bd583d7a00646b74f97ae850c34efebf, type: 2}
+  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -11468,37 +11470,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1250397931
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1250397932}
-  m_Layer: 0
-  m_Name: Colliders
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1250397932
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1250397931}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children:
-  - {fileID: 1463717158}
-  m_Father: {fileID: 1584963168}
-  m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1251049662
 GameObject:
   m_ObjectHideFlags: 0
@@ -12134,7 +12105,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1296469343
 Transform:
   m_ObjectHideFlags: 0
@@ -12891,7 +12862,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1416654626
 Transform:
   m_ObjectHideFlags: 0
@@ -13151,63 +13122,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1456189262}
   m_CullTransparentMesh: 0
---- !u!1 &1463717157
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1463717158}
-  - component: {fileID: 1463717159}
-  m_Layer: 0
-  m_Name: Fall Collider
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1463717158
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1463717157}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -15.76, y: -20.2, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 1250397932}
-  m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!61 &1463717159
-BoxCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1463717157}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0, y: 0}
-    oldSize: {x: 0, y: 0}
-    newSize: {x: 0, y: 0}
-    adaptiveTilingThreshold: 0
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  serializedVersion: 2
-  m_Size: {x: 53.2, y: 1}
-  m_EdgeRadius: 0
 --- !u!1 &1482014340
 GameObject:
   m_ObjectHideFlags: 0
@@ -13614,11 +13528,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1575880697}
-  - component: {fileID: 1575880703}
-  - component: {fileID: 1575880701}
-  - component: {fileID: 1575880700}
   - component: {fileID: 1575880699}
   - component: {fileID: 1575880698}
+  - component: {fileID: 1575880700}
+  - component: {fileID: 1575880703}
+  - component: {fileID: 1575880701}
   - component: {fileID: 1575880702}
   m_Layer: 0
   m_Name: Lich
@@ -13635,7 +13549,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1575880696}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 12.23, y: -13.67, z: 3.1971889}
+  m_LocalPosition: {x: 12.07, y: -13.87, z: 3.1971889}
   m_LocalScale: {x: 1.6218666, y: 1.6218666, z: 1.6218666}
   m_Children:
   - {fileID: 2068795859}
@@ -13671,6 +13585,8 @@ MonoBehaviour:
   Movable: 1
   Invulnerable: 0
   IsDead: 0
+  Stunned: 0
+  Silenced: 0
   CanJump: 1
   OnGround: 0
   Health: 100
@@ -13681,7 +13597,7 @@ MonoBehaviour:
   AttackDamage: 0
   AttackRange: 0
   AttackCooldown: 0
-  MovementSpeed: 3.71
+  MovementSpeed: 5
   JumpScale: 5
   DoubleJumpsMax: 1
   Animator: {fileID: 1575880700}
@@ -13832,7 +13748,6 @@ Transform:
   - {fileID: 451355332}
   - {fileID: 116571414}
   - {fileID: 1288853858}
-  - {fileID: 1250397932}
   - {fileID: 1652187886}
   m_Father: {fileID: 0}
   m_RootOrder: 2
@@ -14011,7 +13926,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1641052884
 Transform:
   m_ObjectHideFlags: 0
@@ -14060,7 +13975,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1584963168}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1681588937
 GameObject:
@@ -15296,7 +15211,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1900866389
 Transform:
   m_ObjectHideFlags: 0

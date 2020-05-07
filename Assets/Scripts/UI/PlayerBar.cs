@@ -15,39 +15,39 @@ public class PlayerBar : MonoBehaviour
 
     // ИЗМЕНЕНИЕ ПОЛОСКИ ИГРОКА
     public enum PlayerBarType { HEALTH, MANA }
-    public static void Update(PlayerBarType _type, float _from, float _to, float _time)
+    public static void Update(PlayerBarType _type, float _value, float _time)
     {
         if (_type == PlayerBarType.HEALTH) PlayerHealthFrozen = true;
         else PlayerManaFrozen = true;
 
-        if (Player.Hero != null) GameObject.Find("Canvas").GetComponent<MonoBehaviour>().StartCoroutine(InterpolatedBar(_type, _from, _to, _time));
+        if (Player.Hero != null) GameObject.Find("Canvas").GetComponent<MonoBehaviour>().StartCoroutine(InterpolatedBar(_type, _value, _time));
     }
-    public static IEnumerator InterpolatedBar(PlayerBarType _type, float _from, float _to, float _time)
+    public static IEnumerator InterpolatedBar(PlayerBarType _type, float _value, float _time)
     {
         float startTime = Time.time;
         switch (_type)
         {
             case PlayerBarType.HEALTH:
-                while (GameObject.Find("Player Bar").transform.GetChild(0).GetComponent<Image>().fillAmount != _to / Player.Hero.MaxHealth)
+                while (GameObject.Find("Player Bar").transform.GetChild(0).GetComponent<Image>().fillAmount != (Player.Hero.Health + _value) / Player.Hero.MaxHealth)
                 {
                     float elapsedTime = Time.time - startTime;
-                    float delta = Mathf.Lerp(_from, _to, elapsedTime / _time);
+                    float delta = Mathf.Lerp(Player.Hero.Health, (Player.Hero.Health + _value), elapsedTime / _time);
                     GameObject.Find("Player Bar").transform.GetChild(0).GetComponent<Image>().fillAmount = delta / Player.Hero.MaxHealth;
                     yield return null;
                 }
                 PlayerHealthFrozen = false;
                 break;
             case PlayerBarType.MANA:
-                while (GameObject.Find("Player Bar").transform.GetChild(1).GetComponent<Image>().fillAmount != _to / Player.Hero.MaxMana)
+                while (GameObject.Find("Player Bar").transform.GetChild(1).GetComponent<Image>().fillAmount != (Player.Hero.Health + _value) / Player.Hero.MaxMana)
                 {
                     float elapsedTime = Time.time - startTime;
-                    float delta = Mathf.Lerp(_from, _to, elapsedTime / _time);
+                    float delta = Mathf.Lerp(Player.Hero.Health, (Player.Hero.Health + _value), elapsedTime / _time);
                     GameObject.Find("Player Bar").transform.GetChild(1).GetComponent<Image>().fillAmount = delta / Player.Hero.MaxMana;
                     yield return null;
                 }
                 PlayerManaFrozen = false;
                 break;
         }
-        GameObject.Find("Canvas").GetComponent<MonoBehaviour>().StopCoroutine(InterpolatedBar(_type, _from, _to, _time));
+        GameObject.Find("Canvas").GetComponent<MonoBehaviour>().StopCoroutine(InterpolatedBar(_type, _value, _time));
     }
 }

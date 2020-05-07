@@ -55,19 +55,6 @@ public class Ability : ScriptableObject
     }
 }
 
-public class Move : Ability
-{
-    public void Cast(Unit _caster, Vector3 _direction)
-    {
-        Point = _direction;
-        _caster.transform.Translate(_direction * _caster.MovementSpeed * Time.deltaTime);
-    }
-}
-public class Attack : Ability
-{
-
-}
-
 public enum ProjectileType { FIRE, POISION }
 public class Shoot : Ability
 {
@@ -83,10 +70,4 @@ public class Shoot : Ability
                 break;
         }
     }
-}
-
-/* Действия способностей */
-static class Methods
-{
-    
 }
