@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.Tracing;
-using System.Net.Http;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.UI;
+
 
 [RequireComponent(typeof(Collider2D))]
 [RequireComponent(typeof(Animator))]
@@ -25,6 +22,7 @@ public class Unit : MonoBehaviour
     public bool Stunned = false;
     public bool Silenced = false;
     public bool CanJump;
+    [Space]
     public bool OnGround;
     
     [Header("Характеристики")]
@@ -38,8 +36,7 @@ public class Unit : MonoBehaviour
     public enum UnitType { MELEE, RANGE }
 
     [Header("Бой")]
-    [SerializeField]
-    UnitType Type = UnitType.MELEE;
+    public UnitType Type;
     public byte AttackDamage;
     public float AttackRange;
     [Range(0, 10)]
@@ -60,9 +57,10 @@ public class Unit : MonoBehaviour
     [Header("Коллайдер для физического взаимодействия")]
     public Collider2D RigidbodyCollider;
 
-    public List<Order> Queue { private set; get; } = new List<Order>();
-    private Order CurrentOrder { set; get; }
-    
+    [Header("Очередь приказов")]
+    public List<Order> Queue = new List<Order>();
+    public Order CurrentOrder { set; get; }
+
     public void LateUpdate()
     {
         if (Queue.Count > 0)
@@ -71,7 +69,6 @@ public class Unit : MonoBehaviour
             {
                 if (Queue[0].State != global::Order.OrderState.PROCESSING)
                 {
-                    
                     CurrentOrder = Queue[0];
                     Queue[0].Execute();
                 }
@@ -128,7 +125,7 @@ public class Unit : MonoBehaviour
             }
             yield return null;
         }
-        CurrentOrder.Complete();
+        if (CurrentOrder.Name != "Patrol") CurrentOrder.Complete();
         StopCoroutine(Move(_direction));
     }
     public void MoveTo(Unit _target)
@@ -147,7 +144,7 @@ public class Unit : MonoBehaviour
             transform.position += new Vector3(_target.transform.position.x - transform.position.x, 0, 0).normalized * MovementSpeed * Time.deltaTime;
             yield return null;
         }
-        CurrentOrder.Complete();
+        if (Queue.Count > 0) CurrentOrder.Complete();
         StopCoroutine(Move(_target));
     }
 
@@ -172,17 +169,16 @@ public class Unit : MonoBehaviour
                 bool flag = false;
                 foreach (Order order in Queue)
                 {
-                    if (order == new Order(method => MoveTo(Target)))
+                    if (order == new Order(method => MoveTo(Target), "MoveTo"))
                     {
                         flag = true;
                     }
                 }
-                if (!flag) Queue.Add(new Order(method => MoveTo(Target)));                
+                if (!flag) Queue.Add(new Order(method => MoveTo(Target), "MoveTo"));                
                 yield return null;
             }
         }
-
-        CurrentOrder.Complete();
+        if (Queue.Count > 0) CurrentOrder.Complete();
         Target = null;
     }
     /*==============================*/
@@ -231,11 +227,10 @@ public class Unit : MonoBehaviour
             _target.Commandable = false;
             _target.Movable = false;
 
-            if (_target == Player.Hero) PlayerBar.Update(PlayerBar.PlayerBarType.HEALTH, -Player.Hero.Health, 1f);
+            if (_target == Player.Hero) Game.Defeat();
         }
-
-        if (Player.Hero.IsDead) Game.Defeat();
     }
+
     public void Kill(Unit _target)
     {        
         _target.Damage(_target, _target.MaxHealth);

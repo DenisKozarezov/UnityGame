@@ -20,9 +20,9 @@ public class Enemy : MonoBehaviour
     [Range(0, 15)]
     public float AggressionLossRadius;
 
-    const float PatrolMaxDistance = 25f;
-    [Header("Патрулирование")]
-    public bool OnPatrol = false;
+    const float PatrolMaxDistance = 25f;        
+    [Header("Патрулирование")]   
+    public bool OnPatrol;
     [Range(0, PatrolMaxDistance)]
     public float PatrolLeftDistance;
     [Range(0, PatrolMaxDistance)]
@@ -63,11 +63,12 @@ public class Enemy : MonoBehaviour
     // ПАТРУЛИРОВАНИЕ
     public void Patrol()
     {
+        StopCoroutine(PatrolCoroutine());
         if (PatrolLeftDistance > 0 || PatrolRightDistance > 0)
         {
             LeftBound = new Vector2(transform.position.x - PatrolLeftDistance, transform.position.y);
             RightBound = new Vector2(transform.position.x + PatrolRightDistance, transform.position.y);
-            OnPatrol = true;
+            OnPatrol = true;            
             StartCoroutine(PatrolCoroutine());
         }
     }
@@ -75,24 +76,25 @@ public class Enemy : MonoBehaviour
     {
         RandomNumberGenerator.Create();
         int random = UnityEngine.Random.Range(0, 2);
-       
-        if (random == 0) GetComponent<Unit>().Queue.Add(new Order(method => GetComponent<Unit>().MoveTo(LeftBound))); 
-        else GetComponent<Unit>().Queue.Add(new Order(method => GetComponent<Unit>().MoveTo(RightBound)));
-
+        
+        if (random == 0) GetComponent<Unit>().MoveTo(LeftBound); 
+        else if (random == 1) GetComponent<Unit>().MoveTo(RightBound);
+        
         while (OnPatrol)
         {
             if (Vector2.Distance(new Vector2(transform.position.x, transform.position.y), LeftBound) == 0)
             {
-                GetComponent<Unit>().Queue.Add(new Order(method => GetComponent<Unit>().MoveTo(RightBound)));
+                GetComponent<Unit>().MoveTo(RightBound);
             }
 
             if (Vector2.Distance(new Vector2(transform.position.x, transform.position.y), RightBound) == 0)
             {
-                GetComponent<Unit>().Queue.Add(new Order(method => GetComponent<Unit>().MoveTo(LeftBound)));
-            }            
+                GetComponent<Unit>().MoveTo(LeftBound);
+            }
             yield return null;
         }
         OnPatrol = false;
+        GetComponent<Unit>().CurrentOrder.Abort();
         StopCoroutine(PatrolCoroutine());
     }
 

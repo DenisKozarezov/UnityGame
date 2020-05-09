@@ -20,7 +20,7 @@ public class Game : MonoBehaviour
             {
                 if (unit.tag == "Enemy")
                 {
-                    if (unit.GetComponent<Enemy>().OnPatrol) unit.GetComponent<Enemy>().Patrol();
+                    if (unit.GetComponent<Enemy>().OnPatrol) unit.Queue.Add(new Order(method => unit.GetComponent<Enemy>().Patrol(), "Patrol"));
                 }
             }
         }
@@ -28,8 +28,9 @@ public class Game : MonoBehaviour
     public static void Defeat()
     {
         IsDefeat = true;
-        CameraScript.Detach();       
-        
+        CameraScript.Detach();
+
+        PlayerBar.Update(PlayerBar.PlayerBarType.HEALTH, -Player.Hero.Health, 1f);
         GameObject.Find("Game Manager").GetComponent<Game>().StartCoroutine(DefeatNumerator(2f));
     }
     public static void Pause()

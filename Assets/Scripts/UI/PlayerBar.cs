@@ -10,7 +10,7 @@ public class PlayerBar : MonoBehaviour
 
     private void Update()
     {
-        if (!PlayerHealthFrozen && !Player.Hero.IsDead) GameObject.Find("Player Bar").transform.GetChild(1).GetComponentInChildren<Image>().fillAmount = Player.Hero.Health / Player.Hero.MaxHealth;
+        //if (!PlayerHealthFrozen && !Player.Hero.IsDead) GameObject.Find("Player Bar").transform.GetChild(1).GetComponentInChildren<Image>().fillAmount = Player.Hero.Health / Player.Hero.MaxHealth;
     }
 
     // ИЗМЕНЕНИЕ ПОЛОСКИ ИГРОКА
