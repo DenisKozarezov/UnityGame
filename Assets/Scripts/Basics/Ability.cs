@@ -1,73 +1,39 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
-public class Ability : ScriptableObject
-{    
-    public enum AbilityType { TARGET, NONTARGET, POINT }
+[Serializable]
+public class Ability
+{
+    public enum AbilityType { TARGET, NONTARGET, POINT, PASSIVE }
+    public enum AbilityTarget { HERO, UNIT, CASTER, HEROANDUNIT }
+    public AbilityType Type { set; get; } = AbilityType.NONTARGET;
+    public AbilityTarget TargetType { set; get; }
     public string Name { set; get; }
     public string Description { set; get; }
-    public float Cooldown { set; get; }
-    public Unit Target { set; get; }
-    public Vector2 Point { set; get; }
-    public AbilityType Type { set; get; } = AbilityType.NONTARGET;
+    public float Cooldown { set; get; } = 0;
+    public byte Range { set; get; } = 0;
+    public SerializedSprite Icon { set; get; }
 
-    public bool IsReady = true;
+    public readonly Action<object[]> Action;
 
-    private delegate void TargetAction(Unit _target);
-    private delegate void NonTargetAction();
-    private delegate void PointAction(Vector2 _point);
-
-    TargetAction TDelegate;
-    NonTargetAction NTDelegate;
-    PointAction PDelegate;
-
-    private void AddAction(TargetAction _action)
+    public Ability(string _name)
     {
-        TDelegate = _action;
+        Name = _name;
     }
-    private void AddAction(NonTargetAction _action)
-    {
-        NTDelegate = _action;
-    }
-    private void AddAction(PointAction _action)
-    {
-        PDelegate = _action;
-    }
-    public virtual void Cast()
-    {
-        if (IsReady)
-        {
-            switch (Type)
-            {
-                case AbilityType.TARGET:
-                    TDelegate.Invoke(Target);
-                    break;
-                case AbilityType.POINT:
-                    PDelegate.Invoke(Point);
-                    break;
-                case AbilityType.NONTARGET:
-                    NTDelegate.Invoke();
-                    break;
-            }
-        }
-        IsReady = false;
-    }
-}
 
-public enum ProjectileType { FIRE, POISION }
-public class Shoot : Ability
-{
-    public void Cast(Unit _caster, Unit _target, ProjectileType _projectileType)
+    public void SetType(AbilityType _type)
     {
-        Vector3 targetPosition = _target.transform.position;
-        
-        switch (_projectileType)
-        {
-            case ProjectileType.FIRE:
-                GameObject projectile = Instantiate(GameObject.CreatePrimitive(PrimitiveType.Capsule), _caster.transform.position, Quaternion.identity);
-                projectile.AddComponent<Projectile>().Shoot(projectile.transform.position, _target.transform.position);
-                break;
-        }
+        Type = _type;
+    }
+    public void SetCooldown(float _value)
+    {
+        Cooldown = _value;
+    }
+    public void Cast(object[] arguments)
+    {
+           
     }
 }

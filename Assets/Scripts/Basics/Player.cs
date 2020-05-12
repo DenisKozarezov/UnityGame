@@ -13,7 +13,7 @@ public class Player : MonoBehaviour {
         Hero = GetComponent<Unit>();
         CameraScript.AttachToUnit(Hero, CameraScript.CameraAttachmentType.BOTH);
     }
-        
+
     // УПРАВЛЕНИЕ ПЕРСОНАЖЕМ
     private void Update()
     {     

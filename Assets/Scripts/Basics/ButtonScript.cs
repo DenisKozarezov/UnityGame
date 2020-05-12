@@ -22,7 +22,7 @@ public class ButtonScript : MonoBehaviour
             yield return null;
         }
         GetComponent<Image>().fillAmount = 1;
-        GetComponent<Ability>().IsReady = true;
+        //GetComponent<Ability>().IsReady = true;
         StopCoroutine(InterpolatedCooldown(_time));
     }
 }

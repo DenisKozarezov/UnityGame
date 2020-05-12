@@ -57,9 +57,11 @@ public class Unit : MonoBehaviour
     [Header("Коллайдер для физического взаимодействия")]
     public Collider2D RigidbodyCollider;
 
-    [Header("Очередь приказов")]
-    public List<Order> Queue = new List<Order>();
-    public Order CurrentOrder { set; get; }
+    public List<Order> Queue { private set; get; } = new List<Order>();
+    public Order CurrentOrder { private set; get; }
+
+
+    public List<Ability> Abilities { private set; get; } = new List<Ability>();
 
     public void LateUpdate()
     {
@@ -230,7 +232,6 @@ public class Unit : MonoBehaviour
             if (_target == Player.Hero) Game.Defeat();
         }
     }
-
     public void Kill(Unit _target)
     {        
         _target.Damage(_target, _target.MaxHealth);
@@ -246,6 +247,15 @@ public class Unit : MonoBehaviour
     /*===============================*/
 
     /*=== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===*/
+    public void AddAbility(Ability _ability)
+    {
+        Abilities.Add(_ability);
+    }
+    public void RemoveAbility(Ability _ability)
+    {
+        Abilities.Remove(_ability);
+    }
+
     private static float GetPhysicRadius(Unit _first, Unit _second)
     {
         float _firstRadius = Vector3.Distance(_first.RigidbodyCollider.bounds.center, _first.RigidbodyCollider.bounds.min);
