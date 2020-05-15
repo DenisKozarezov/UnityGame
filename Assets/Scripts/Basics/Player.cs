@@ -11,7 +11,7 @@ public class Player : MonoBehaviour {
     private void Awake()
     {
         Hero = GetComponent<Unit>();
-        CameraScript.AttachToUnit(Hero, CameraScript.CameraAttachmentType.BOTH);
+        CameraScript.AttachToUnit(Hero, CameraScript.CameraAttachmentType.HORIZONTAL);
     }
 
     // УПРАВЛЕНИЕ ПЕРСОНАЖЕМ
@@ -31,8 +31,7 @@ public class Player : MonoBehaviour {
 
         if (Input.GetKeyDown(Options.Jump))
         {
-            if (Hero.Movable && Hero.Commandable && !Hero.IsDead)
-                Hero.Jump();
+            Hero.Jump();
         }        
     }
 

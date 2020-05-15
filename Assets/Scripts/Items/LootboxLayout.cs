@@ -1,39 +1,38 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Reflection.Emit;
-using System.Runtime.InteropServices.ComTypes;
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.AnimatedValues;
-using UnityEditor.Experimental.TerrainAPI;
+#endif
 using UnityEngine;
 using UnityEngine.UI;
-using UnityScript.Scripting.Pipeline;
 
+#if UNITY_EDITOR
 [CustomEditor(typeof(Lootbox))]
 public class Lootboxyout : Editor
 {
     Lootbox Target;
     AnimBool itemsFoldoutValue;
-    Vector2 scrollPos;
+    Vector2 LootBoxScrollPos;
+    Vector2 AddItemScrollPos;
 
-    GUIStyle buttonStyle = new GUIStyle();
     bool AddItem;
-    string AddItemName = "Добавить предмет";
 
-    const int ItemHeight = 30;
+    const int ItemHeight = 50;
     private void OnEnable()
     {
         Target = (Lootbox)target;
         itemsFoldoutValue = new AnimBool(false);
         itemsFoldoutValue.valueChanged.AddListener(Repaint);
-
-        buttonStyle.normal.background = Texture2D.whiteTexture;
-        buttonStyle.normal.textColor = Color.black;
-        buttonStyle.alignment = TextAnchor.MiddleCenter;
     }
 
     public override void OnInspectorGUI()
     {
+        GUIStyle itemStyle = new GUIStyle();
+        itemStyle.alignment = TextAnchor.MiddleLeft;
+        itemStyle.normal.textColor = Color.black;
+
         GUIStyle labelStyle = new GUIStyle();
         labelStyle.normal.background = Texture2D.grayTexture;
         labelStyle.alignment = TextAnchor.MiddleCenter;
@@ -46,50 +45,66 @@ public class Lootboxyout : Editor
 
         Target.ItemsFoldout = EditorGUILayout.Foldout(Target.ItemsFoldout, "Предметы");
         itemsFoldoutValue.target = Target.ItemsFoldout;
+
+        EditorGUI.BeginChangeCheck();
+
         if (EditorGUILayout.BeginFadeGroup(itemsFoldoutValue.faded))
         {
-            if (Target.Items.Capacity > 1)
+            if (Target.Items.Count > 0)
             {
-                EditorGUILayout.LabelField("", labelStyle, GUILayout.Height(ItemHeight * Target.Items.Count));
+                AddItemScrollPos = EditorGUILayout.BeginScrollView(AddItemScrollPos, GUILayout.Height(200));
+                for (int i = 0; i < Target.Items.Count; i++)
+                {
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("[" + i + "]", GUILayout.Width(20), GUILayout.Height(ItemHeight));
+
+                    GUIStyle style = new GUIStyle();
+                    style.normal.background = Target.Items[i].GetIcon();
+                    EditorGUILayout.LabelField("", style, GUILayout.Width(ItemHeight), GUILayout.Height(ItemHeight));
+                    EditorGUILayout.LabelField(Target.Items[i].Name, GUILayout.Width(120), GUILayout.Height(ItemHeight));
+                    EditorGUILayout.LabelField("Вероятность: " + Target.Items[i].Probability, GUILayout.Width(120), GUILayout.Height(ItemHeight));
+                    if (GUILayout.Button("Изменить", GUILayout.Height(ItemHeight)))
+                    {
+                        
+                    }
+                    if (GUILayout.Button("Удалить", GUILayout.Height(ItemHeight)))
+                    {
+                        Undo.RecordObject(target, "Remove Item");
+                        Target.Items.RemoveAt(i);
+                    }
+                    EditorGUILayout.EndHorizontal();
+                }
+                EditorGUILayout.EndScrollView();
             }
             else
             {
-                EditorGUILayout.LabelField("Пусто", labelStyle, GUILayout.Height(ItemHeight));
+                EditorGUILayout.LabelField("Сундук пуст", labelStyle, GUILayout.Height(ItemHeight));
             }
 
-            if (GUILayout.Button("Добавить предмет"))
-            {
-                if (!AddItem)
-                {
-                    AddItem = true;
-                    buttonStyle.normal.background = Texture2D.grayTexture;
-                    buttonStyle.normal.textColor = Color.white;
-                }
-                else
-                {
-                    AddItem = false;
-                    buttonStyle.normal.background = Texture2D.whiteTexture;
-                    buttonStyle.normal.textColor = Color.black;
-                }
-            }
+            if (GUILayout.Button("Добавить предмет")) AddItem = !AddItem;
 
             if (AddItem)
             {
+                DataObject data = GameData.Load(GameData.DataBasePath);
                 EditorGUILayout.Space(20);
                 EditorGUILayout.BeginVertical();
-                if (GameData.Items.Count > 0)
+                if (data.Items.Count > 0)
                 {
                     EditorGUILayout.LabelField("Выберите предмет", textStyle);
-                    scrollPos = EditorGUILayout.BeginScrollView(scrollPos, GUILayout.Height(ItemHeight * GameData.Items.Count));
-                    for (int i = 0; i < GameData.Items.Count; i++)
+                    LootBoxScrollPos = EditorGUILayout.BeginScrollView(LootBoxScrollPos, GUILayout.Height(200));
+                    for (int i = 0; i < data.Items.Count; i++)
                     {                        
                         EditorGUILayout.BeginHorizontal();
-                        EditorGUILayout.LabelField("[" + i + "]");
-                        if (GUILayout.Button(GameData.Items[i].Name))
+                        EditorGUILayout.LabelField("[" + i + "]", GUILayout.Width(20), GUILayout.Height(ItemHeight));                        
+                        GUIStyle style = new GUIStyle();
+                        style.normal.background = data.Items[i].GetIcon();
+                        EditorGUILayout.LabelField("", style, GUILayout.Width(ItemHeight), GUILayout.Height(ItemHeight));
+                        if (GUILayout.Button(data.Items[i].Name, GUILayout.Width(150), GUILayout.Height(ItemHeight)))
                         {
-                            
+                            Undo.RecordObject(target, "Add Item");
+                            Target.Items.Add(data.Items[i]);
                         }
-                        EditorGUILayout.LabelField("Вероятность" + GameData.Items[i].Probability);
+                        EditorGUILayout.LabelField("Вероятность: " + data.Items[i].Probability, GUILayout.Height(ItemHeight));
                         EditorGUILayout.EndHorizontal();
                     }
                     EditorGUILayout.EndScrollView();
@@ -99,5 +114,7 @@ public class Lootboxyout : Editor
             }
         }
         EditorGUILayout.EndFadeGroup();
+        EditorGUI.EndChangeCheck();
     }
 }
+#endif

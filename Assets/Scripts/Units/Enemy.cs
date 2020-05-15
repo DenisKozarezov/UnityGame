@@ -4,13 +4,14 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Security.Cryptography;
 using UnityEditor;
+using UnityEditor.Tilemaps;
 using UnityEngine;
 using Vector2 = UnityEngine.Vector2;
 using Vector3 = UnityEngine.Vector3;
 
 [RequireComponent(typeof(Unit))]
 [RequireComponent(typeof(CircleCollider2D))]
-[ExecuteInEditMode]
+//[ExecuteInEditMode]
 public class Enemy : MonoBehaviour
 {        
     public bool Aggressive { private set; get; }
@@ -35,6 +36,15 @@ public class Enemy : MonoBehaviour
     [Header("Круговой коллайдер для потери врага")]
     public CircleCollider2D AggressionLossCollider;
 
+    private void Start()
+    {        
+        GetComponent<Unit>().Queue.Add(new Order(method => GetComponent<Unit>().MoveTo(transform.position + Vector3.left * 10), "Влево на 10"));
+        GetComponent<Unit>().Queue.Add(new Order(method => GetComponent<Unit>().MoveTo(transform.position + Vector3.right * 5), "Вправо на 5"));
+        GetComponent<Unit>().Queue.Add(new Order(method => GetComponent<Unit>().MoveTo(transform.position + Vector3.left * 3), "Влево на 3"));
+        GetComponent<Unit>().Queue.Add(new Order(method => GetComponent<Unit>().MoveTo(transform.position + Vector3.right * 14), "Вправо на 14"));
+        GetComponent<Unit>().Queue.Add(new Order(method => GetComponent<Unit>().MoveTo(transform.position + Vector3.left * 15), "Влево на 15"));
+        GetComponent<Unit>().Queue.Add(new Order(method => Patrol(), "Патрулирование"));
+    }
     private void LateUpdate()
     {
         if (AggressionCollider != null) AggressionCollider.radius = AggressionRadius;

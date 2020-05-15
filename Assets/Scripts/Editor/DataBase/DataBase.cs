@@ -1,26 +1,19 @@
-﻿using System;
+﻿using ICSharpCode.NRefactory.Ast;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
+#endif
 using UnityEngine;
 using UnityEngine.UI;
 
-[Serializable]
-class DataObject
-{
-    public List<Ability> Abilities { private set; get; } = new List<Ability>();
-    public List<Item> Items { private set; get; } = new List<Item>();
-
-    public DataObject(List<Ability> abilities, List<Item> items)
-    {
-        Abilities = abilities;
-        Items = items;
-    }
-}
-
+#if UNITY_EDITOR
 [Serializable]
 public class DataBase : EditorWindow
 {
@@ -68,7 +61,17 @@ public class DataBase : EditorWindow
     List<Ability> Abilities = new List<Ability>();
     List<Item> Items = new List<Item>();
 
-    string dataBasePath = "Assets/DataBase.data";
+    Vector2 ActionTier1, ActionTier2, ActionAreaScrollPos;
+    int ActionTier1Height = 100, ActionTier2Height = 100;
+    int ActionTier1Index = -1, ActionTier2Index;
+    bool AddAction;
+    Action Action;
+
+    byte HealingValue;
+    float HealingPeriod;
+
+    byte DamageValue;
+    float DamagePeriod;
 
     [MenuItem("Tools/Game Data")]
     public static void ShowWindow()
@@ -77,16 +80,20 @@ public class DataBase : EditorWindow
     }
     public void OnEnable()
     {
-        if (System.IO.File.Exists(dataBasePath) && System.IO.File.ReadAllText(dataBasePath).Length > 0)
+        if (System.IO.File.Exists(GameData.DataBasePath) && System.IO.File.ReadAllText(GameData.DataBasePath).Length > 0)
         {
-            DataObject load = Load();
+            DataObject load = GameData.Load(GameData.DataBasePath);
             Abilities = load.Abilities;
             Items = load.Items;
+            ActionTier1Index = load.ActionTier1Index;
+            ActionTier2Index = load.ActionTier2Index;
         }        
     }
     public void OnDisable()
     {
-        Save();
+        DataObject data = new DataObject(Abilities, Items);
+        GameData.Save(GameData.DataBasePath, data);
+        Action = null;
     }
     public void OnGUI()
     {
@@ -121,6 +128,7 @@ public class DataBase : EditorWindow
         {
             CurrentItem = null;
             Icon = null;
+            AddAction = false;
             switch (ContentType)
             {
                 case OptionType.ABILITIES:
@@ -150,6 +158,7 @@ public class DataBase : EditorWindow
         {
             CurrentItem = null;
             Icon = null;
+            AddAction = false;
             switch (ContentType)
             {
                 case OptionType.ABILITIES:
@@ -257,6 +266,7 @@ public class DataBase : EditorWindow
                             ShowItemInfo(Abilities[i]);                            
                             SelectItem(OptionType.ABILITIES, CurrentIndex);
                             EditorGUIUtility.editingTextField = false;
+                            AddAction = false;
                         }
                     }
                 }
@@ -273,6 +283,7 @@ public class DataBase : EditorWindow
                             ShowItemInfo(Items[i]);
                             SelectItem(OptionType.ITEMS, CurrentIndex);
                             EditorGUIUtility.editingTextField = false;
+                            AddAction = false;
                         }
                     }
                 }
@@ -437,7 +448,7 @@ public class DataBase : EditorWindow
         Name = EditorGUILayout.TextArea(Name, GUILayout.Width(350));
 
         EditorGUILayout.LabelField("Описание", propertyStyle);
-        Description = EditorGUILayout.TextArea(Description, GUILayout.Width(350), GUILayout.Height(100));
+        Description = GUILayout.TextArea(Description, GUILayout.Width(350), GUILayout.Height(100));
 
         EditorGUILayout.BeginVertical();
         EditorGUILayout.LabelField("Иконка", propertyStyle, GUILayout.Width(60));
@@ -480,7 +491,42 @@ public class DataBase : EditorWindow
         }
         EditorGUILayout.EndVertical();
 
-        EditorGUILayout.LabelField("Действие", propertyStyle);        
+        EditorGUILayout.LabelField("Действие", propertyStyle);
+        if (CurrentItem != null)
+        {
+            switch (ContentType)
+            {
+                case OptionType.ABILITIES:
+                    Ability ability = (Ability)CurrentItem;
+                    if (ability.Action != null)
+                    {
+                        EditorGUILayout.LabelField("Эффект: " + ability.Action.Name);
+                    }
+                    else
+                    {
+                        EditorGUILayout.HelpBox("У этой способности нет действия.", MessageType.Warning);
+                        if (GUILayout.Button("Добавить действие")) AddAction = !AddAction;
+                    }
+                    break;
+                case OptionType.ITEMS:
+                    Item item = (Item)CurrentItem;
+                    if (item.Action != null)
+                    {
+                        EditorGUILayout.LabelField("Эффект: " + item.Action.Name);
+                    }
+                    else
+                    {
+                        EditorGUILayout.HelpBox("У этой предмета нет действия.", MessageType.Warning);
+                        if (GUILayout.Button("Добавить действие")) AddAction = !AddAction;
+                    }
+                    break;
+            }
+
+            if (AddAction)
+            {
+                ShowAddAction();
+            }
+        }
 
         EditorGUILayout.EndVertical();
         #endregion
@@ -502,6 +548,7 @@ public class DataBase : EditorWindow
                     ability.Type = (Ability.AbilityType)AbilityType;
                     ability.Range = Range;
                     ability.TargetType = (Ability.AbilityTarget)AbilityTarget;
+                    ability.Action = Action;
                 }
                 else if (CurrentItem.GetType() == typeof(Item))
                 {
@@ -513,31 +560,12 @@ public class DataBase : EditorWindow
                     item.Charges = ItemCharges;
                     item.Characteristic = (Item.ItemCharacteristic)ItemCharacteristic;
                     item.Probability = ItemProbability;
+                    item.Action = Action;
                 }
             }    
         }
     }
 
-    private void Save()
-    {
-        BinaryFormatter formatter = new BinaryFormatter();
-        using (FileStream stream = new FileStream(dataBasePath, FileMode.OpenOrCreate, FileAccess.Write))
-        {
-            DataObject data = new DataObject(Abilities, Items);
-            formatter.Serialize(stream, data);
-            stream.Close();
-        }
-        GameData.Abilities = Abilities;
-        GameData.Items = Items;
-    }
-    private DataObject Load()
-    {
-        BinaryFormatter formatter = new BinaryFormatter();
-        FileStream stream = new FileStream(dataBasePath, FileMode.Open, FileAccess.Read);
-        DataObject data = formatter.Deserialize(stream) as DataObject;
-        stream.Close();
-        return data;
-    }
     private void ShowItemInfo(object _item)
     {
         if (_item.GetType() == typeof(Ability))
@@ -565,6 +593,8 @@ public class DataBase : EditorWindow
                 else Icon = null;
             }
             else Icon = null;
+            if (ability.Action != null) Action = ability.Action;
+            else Action = null;
         }
         else if (_item.GetType() == typeof(Item))
         {
@@ -577,7 +607,6 @@ public class DataBase : EditorWindow
             ItemCharges = item.Charges;
             ItemCharacteristic = (int)item.Characteristic;
             ItemProbability = item.Probability;
-
             if (item.Icon != null)
             {
                 if (item.Icon.ptr != IntPtr.Zero)
@@ -593,7 +622,176 @@ public class DataBase : EditorWindow
                 else Icon = null;
             }
             else Icon = null;
+            if (item.Action != null) Action = item.Action;
+            else Action = null;
         }
+    }
+    private void ShowAddAction()
+    {     
+        EditorGUILayout.BeginHorizontal();
+        ActionTier1 = EditorGUILayout.BeginScrollView(ActionTier1, GUILayout.Width(130), GUILayout.Height(ActionTier1Height));
+        string[] actionType = { "Исцеление",
+            "Разрушение",
+            "Усиление",
+            "Ослабление",
+            "Созидание",
+            "Защита",
+        };
+        ActionTier1Height = actionType.Length * ContentItemHeight;
+        for (int i = 0; i < actionType.Length; i++)
+        {
+            if (GUILayout.Button(actionType[i], GUILayout.Height(ContentItemHeight))) ActionTier1Index = i;
+        }
+        EditorGUILayout.EndScrollView();
+
+        ActionTier2 = EditorGUILayout.BeginScrollView(ActionTier2, GUILayout.Width(130), GUILayout.Height(ActionTier2Height));
+        switch (ActionTier1Index)
+        {
+            case (int)Action.ActionTier1Type.HEALING:
+                string[] healingType = { "Мгновенное", "Периодическое" };
+                ActionTier2Height = healingType.Length * ContentItemHeight;
+                for (int i = 0; i < healingType.Length; i++)
+                {
+                    if (GUILayout.Button(healingType[i], GUILayout.Height(ContentItemHeight)))
+                    {
+                        Action = new HealingAction(healingType[i] + " исцеление", i);
+                        ActionTier2Index = i;
+                    }
+                }
+                break;
+            case (int)Action.ActionTier1Type.DESTRUCTION:
+                string[] destructionType = { "Мгновенный урон", "Периодическй урон" };
+                ActionTier2Height = (destructionType.Length + 1) * ContentItemHeight;
+                for (int i = 0; i < destructionType.Length; i++)
+                {
+                    if (GUILayout.Button(destructionType[i], GUILayout.Height(ContentItemHeight)))
+                    {
+                        Action = new DestructionAction(destructionType[i], i);
+                        ActionTier2Index = i;
+                    }
+                }
+                break;
+            case (int)Action.ActionTier1Type.BUFF:
+                string[] buffType = {
+                    "Здоровье",
+                    "Мана",
+                    "Урон",
+                    "Дальность атаки",
+                    "Скорость"
+                };
+                ActionTier2Height = buffType.Length * ContentItemHeight;
+                for (int i = 0; i < buffType.Length; i++)
+                {
+                    if (GUILayout.Button(buffType[i], GUILayout.Height(ContentItemHeight)))
+                    {
+                        Action = new BuffAction(buffType[i], i);
+                        ActionTier2Index = i;
+                    }
+                }
+                break;
+            case (int)Action.ActionTier1Type.DEBUFF:
+                string[] debuffType = {
+                    "Здоровье",
+                    "Мана",
+                    "Урон",
+                    "Дальность атаки",
+                    "Скорость"
+                };
+                ActionTier2Height = debuffType.Length * ContentItemHeight;
+                for (int i = 0; i < debuffType.Length; i++)
+                {
+                    if (GUILayout.Button(debuffType[i], GUILayout.Height(ContentItemHeight)))
+                    {
+                        Action = new DebuffAction(debuffType[i], i);
+                        ActionTier2Index = i;
+                    }
+                }
+                break;
+            case (int)Action.ActionTier1Type.CREATION:
+                string[] creationType = { "Создать" };
+                ActionTier2Height = (creationType.Length + 1) * ContentItemHeight;
+                for (int i = 0; i < creationType.Length; i++)
+                {
+                    if (GUILayout.Button(creationType[i], GUILayout.Height(ContentItemHeight)))
+                    {
+                        Action = new CreationAction(creationType[i], i);
+                        ActionTier2Index = i;
+                    }
+                }
+                break;
+            case (int)Action.ActionTier1Type.PROTECTION:
+                string[] protectionType = { "Отражение", "Поглощение", "Рывок", "Телепортация", "Бессмертие" };
+                ActionTier2Height = (protectionType.Length) * ContentItemHeight;
+                for (int i = 0; i < protectionType.Length; i++)
+                {
+                    if (GUILayout.Button(protectionType[i], GUILayout.Height(ContentItemHeight)))
+                    {
+                        Action = new ProtectionAction(protectionType[i], i);
+                        ActionTier2Index = i;
+                    }
+                }
+                break;
+        }
+        EditorGUILayout.EndScrollView();
+
+        EditorGUILayout.BeginVertical();
+        if (Action != null)
+        {
+            if (Action.GetType() == typeof(HealingAction) && ActionTier1Index == (int)Action.ActionTier1Type.HEALING)
+            {
+                EditorGUILayout.BeginHorizontal();
+                HealingAction healing = (HealingAction)Action;
+                EditorGUILayout.LabelField("Объём исцеления", GUILayout.Width(130));
+                HealingValue = (byte)EditorGUILayout.IntField(HealingValue, GUILayout.Width(50));
+                EditorGUILayout.LabelField("ед.");
+                if (healing.HealingType == HealingAction.Healing.PERIODIC)
+                {
+                    EditorGUILayout.EndHorizontal();
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Период", GUILayout.Width(60));
+                    HealingPeriod = EditorGUILayout.FloatField(HealingPeriod, GUILayout.Width(50));
+                    if (HealingPeriod < 0) HealingPeriod = 0;
+                    EditorGUILayout.LabelField("сек.");
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+            else if (Action.GetType() == typeof(DestructionAction) && ActionTier1Index == (int)Action.ActionTier1Type.DESTRUCTION)
+            {
+                EditorGUILayout.BeginHorizontal();
+                DestructionAction damage = (DestructionAction)Action;
+                EditorGUILayout.LabelField("Наносимый урон", GUILayout.Width(130));
+                DamageValue = (byte)EditorGUILayout.IntField(DamageValue, GUILayout.Width(50));
+                EditorGUILayout.LabelField("ед.");
+                if (damage.DestructionType == DestructionAction.Destruction.PERIODIC)
+                {
+                    EditorGUILayout.EndHorizontal();
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Период", GUILayout.Width(60));
+                    DamagePeriod = EditorGUILayout.FloatField(DamagePeriod, GUILayout.Width(50));
+                    if (DamagePeriod < 0) HealingPeriod = 0;
+                    EditorGUILayout.LabelField("сек.");
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+            else if (Action.GetType() == typeof(BuffAction) && ActionTier1Index == (int)Action.ActionTier1Type.BUFF)
+            {
+
+            }
+            else if (Action.GetType() == typeof(DebuffAction) && ActionTier1Index == (int)Action.ActionTier1Type.DEBUFF)
+            {
+
+            }
+            else if (Action.GetType() == typeof(CreationAction) && ActionTier1Index == (int)Action.ActionTier1Type.CREATION)
+            {
+
+            }
+            else if (Action.GetType() == typeof(ProtectionAction) && ActionTier1Index == (int)Action.ActionTier1Type.PROTECTION)
+            {
+
+            }
+        }
+        EditorGUILayout.EndVertical();
+        EditorGUILayout.EndHorizontal();
     }
     private void SelectItem(OptionType type, int index)
     {
@@ -609,3 +807,4 @@ public class DataBase : EditorWindow
         }
     }
 }
+#endif

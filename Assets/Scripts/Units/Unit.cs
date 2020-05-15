@@ -8,7 +8,7 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(Rigidbody2D))]
-
+[Serializable]
 public class Unit : MonoBehaviour
 {
     public static Unit[] Units { private set; get; } = new Unit[100];
@@ -45,11 +45,11 @@ public class Unit : MonoBehaviour
     [Header("Передвижение")]
     [Range(0, 5)]
     public float MovementSpeed;
-    public float JumpScale = 4f;
 
     private byte DoubleJumpsCount { set; get; } = 0;
-    [Header("Кол-во дополнительных прыжков")] 
+    [Header("Прыжок")] 
     public byte DoubleJumpsMax = 0;
+    public float JumpScale = 4f;
 
     [Header("Аниматор для проигрывания анимаций")]
     public Animator Animator;
@@ -57,11 +57,13 @@ public class Unit : MonoBehaviour
     [Header("Коллайдер для физического взаимодействия")]
     public Collider2D RigidbodyCollider;
 
-    public List<Order> Queue { private set; get; } = new List<Order>();
-    public Order CurrentOrder { private set; get; }
+    public List<Order> Queue = new List<Order>();
+    public Order CurrentOrder;
 
 
-    public List<Ability> Abilities { private set; get; } = new List<Ability>();
+    public bool AbilitiesFoldout;
+    public float FoldoutHeight = 100;
+    public List<Ability> Abilities = new List<Ability>();
 
     public void LateUpdate()
     {
@@ -127,7 +129,7 @@ public class Unit : MonoBehaviour
             }
             yield return null;
         }
-        if (CurrentOrder.Name != "Patrol") CurrentOrder.Complete();
+        if (CurrentOrder.Name != "Патрулирование") CurrentOrder.Complete();
         StopCoroutine(Move(_direction));
     }
     public void MoveTo(Unit _target)
@@ -228,6 +230,7 @@ public class Unit : MonoBehaviour
             _target.IsDead = true;
             _target.Commandable = false;
             _target.Movable = false;
+            _target.CanJump = false;
 
             if (_target == Player.Hero) Game.Defeat();
         }

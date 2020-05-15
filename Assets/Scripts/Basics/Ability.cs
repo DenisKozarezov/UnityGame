@@ -9,15 +9,14 @@ public class Ability
 {
     public enum AbilityType { TARGET, NONTARGET, POINT, PASSIVE }
     public enum AbilityTarget { HERO, UNIT, CASTER, HEROANDUNIT }
-    public AbilityType Type { set; get; } = AbilityType.NONTARGET;
-    public AbilityTarget TargetType { set; get; }
-    public string Name { set; get; }
-    public string Description { set; get; }
-    public float Cooldown { set; get; } = 0;
-    public byte Range { set; get; } = 0;
-    public SerializedSprite Icon { set; get; }
-
-    public readonly Action<object[]> Action;
+    public AbilityType Type = AbilityType.NONTARGET;
+    public AbilityTarget TargetType;
+    public string Name;
+    public string Description;
+    public float Cooldown = 0;
+    public byte Range = 0;
+    public SerializedSprite Icon;
+    public Action Action;
 
     public Ability(string _name)
     {
@@ -31,6 +30,19 @@ public class Ability
     public void SetCooldown(float _value)
     {
         Cooldown = _value;
+    }
+    public Texture2D GetIcon()
+    {
+        if (Icon != null)
+        {
+            if (Icon.ptr != IntPtr.Zero)
+            {
+                Texture2D convert = Texture2D.CreateExternalTexture(Icon.width, Icon.height, TextureFormat.ARGB32, false, false, Icon.ptr);
+                return convert;
+            }
+            else return Texture2D.grayTexture;
+        }
+        else return Texture2D.grayTexture;
     }
     public void Cast(object[] arguments)
     {
