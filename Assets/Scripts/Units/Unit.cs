@@ -2,8 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Security.AccessControl;
+#if UNITY_EDITOR
+using UnityEditor.UI;
+#endif
 using UnityEngine;
-
+using UnityEngine.Rendering;
 
 [RequireComponent(typeof(Collider2D))]
 [RequireComponent(typeof(Animator))]
@@ -11,7 +15,7 @@ using UnityEngine;
 [Serializable]
 public class Unit : MonoBehaviour
 {
-    public static Unit[] Units { private set; get; } = new Unit[100];
+    public static List<Unit> Units { private set; get; } = new List<Unit>();
 
     [Header("Статус")]
     public bool Paused = false;
@@ -22,8 +26,12 @@ public class Unit : MonoBehaviour
     public bool Stunned = false;
     public bool Silenced = false;
     public bool CanJump;
+    public bool CanSlide;
     [Space]
     public bool OnGround;
+    public bool OnWall;
+    public byte SlidesCountMax = 2;
+    private byte SlidesCount { set; get; } = 0;
     
     [Header("Характеристики")]
     public byte Health;
@@ -31,7 +39,7 @@ public class Unit : MonoBehaviour
     public byte Mana;
     public byte MaxMana;
 
-    public Unit Target { set; get; }
+    public Unit Target;
 
     public enum UnitType { MELEE, RANGE }
 
@@ -41,12 +49,13 @@ public class Unit : MonoBehaviour
     public float AttackRange;
     [Range(0, 10)]
     public float AttackCooldown;
+    public bool IsReadyToAttack = true;
 
     [Header("Передвижение")]
     [Range(0, 5)]
     public float MovementSpeed;
 
-    private byte DoubleJumpsCount { set; get; } = 0;
+    private byte DoubleJumpsCount = 0;
     [Header("Прыжок")] 
     public byte DoubleJumpsMax = 0;
     public float JumpScale = 4f;
@@ -55,7 +64,7 @@ public class Unit : MonoBehaviour
     public Animator Animator;
 
     [Header("Коллайдер для физического взаимодействия")]
-    public Collider2D RigidbodyCollider;
+    public BoxCollider2D RigidbodyCollider;
 
     public List<Order> Queue = new List<Order>();
     public Order CurrentOrder;
@@ -65,6 +74,7 @@ public class Unit : MonoBehaviour
     public float FoldoutHeight = 100;
     public List<Ability> Abilities = new List<Ability>();
 
+    private Color DefaultColor;
     public void LateUpdate()
     {
         if (Queue.Count > 0)
@@ -83,36 +93,62 @@ public class Unit : MonoBehaviour
                 CurrentOrder = null;
             }
         }
+
+        if (Animator != null && !OnWall)
+        {
+            Animator.SetBool("On Ground", OnGround);
+            if (!OnGround)
+            {
+                if (GetComponent<Rigidbody2D>().velocity.y < -2f)
+                {
+                    Animator.ResetTrigger("Hover");
+                    Animator.SetTrigger("Fall");
+                }
+                else if (GetComponent<Rigidbody2D>().velocity.y > 0)
+                {
+                    Animator.ResetTrigger("Fall");
+                }
+                else if (GetComponent<Rigidbody2D>().velocity.y <= 0 && GetComponent<Rigidbody2D>().velocity.y >= -2f)
+                {
+                    Animator.ResetTrigger("Jump");
+                    Animator.SetTrigger("Hover");
+                }
+            }
+        }
     }
 
     public Unit()
     {
-        for (int i = 0; i < Units.Length; i++)
-        {
-            if (Units[i] == null)
-            {
-                Units[i] = this;
-                break;
-            }
-        }
+        Units.Add(this);        
+    }
+
+    public void Start()
+    {
+        DefaultColor = GetComponent<SpriteRenderer>().material.color;
+        if (Animator != null) Idle();
     }
 
     /*========== ПРИКАЗЫ ==========*/
     public void MoveTo(Vector2 _direction)
     {
         if (Movable && Commandable && !IsDead)
-        {       
-            if (_direction == Vector2.right)
+        {            
+            if (_direction.x - transform.position.x < 0)
             {
                 GetComponent<SpriteRenderer>().flipX = true;          
             }
-            else if (_direction == Vector2.left)
+            else if (_direction.x - transform.position.x > 0)
             {
                 GetComponent<SpriteRenderer>().flipX = false;
             }
-
-            Animator.SetTrigger("Walk");
+            
             StopCoroutine(Move(_direction));
+            if (Animator != null)
+            {
+                Idle();
+                Animator.SetBool("Idle", false);
+                Animator.SetBool("Walk", true);
+            }
             StartCoroutine(Move(_direction));
         }
     } // Ходьба к указанной точке со скоростью MovementSpeed
@@ -129,6 +165,7 @@ public class Unit : MonoBehaviour
             }
             yield return null;
         }
+        Idle();
         if (CurrentOrder.Name != "Патрулирование") CurrentOrder.Complete();
         StopCoroutine(Move(_direction));
     }
@@ -137,18 +174,34 @@ public class Unit : MonoBehaviour
         if (Movable && Commandable && !IsDead)
         {
             StopCoroutine(Move(_target));
-            Animator.SetTrigger("Walk");
+            if (Animator != null)
+            {
+                Idle();
+                Animator.SetBool("Idle", false);
+                Animator.SetBool("Walk", true);
+            }
             StartCoroutine(Move(_target));
         }
     } // Преследование указанной цели со скоростью MovementSpeed
     private IEnumerator Move(Unit _target)
     {
+        float distance = Vector3.Distance(transform.position, _target.transform.position);
         while (Vector3.Distance(transform.position, _target.transform.position) >= GetPhysicRadius(this, _target))
         {
-            transform.position += new Vector3(_target.transform.position.x - transform.position.x, 0, 0).normalized * MovementSpeed * Time.deltaTime;
+            distance = Vector3.Distance(transform.position, _target.transform.position);
+            if (_target.transform.position.x - transform.position.x < 0)
+            {
+                GetComponent<SpriteRenderer>().flipX = true;
+            }
+            else if (_target.transform.position.x - transform.position.x > 0)
+            {
+                GetComponent<SpriteRenderer>().flipX = false;
+            }
+            transform.position = Vector3.Lerp(transform.position, _target.transform.position, MovementSpeed / distance * Time.deltaTime);
             yield return null;
         }
-        if (Queue.Count > 0) CurrentOrder.Complete();
+        Idle();
+        if (CurrentOrder.Name != "Патрулирование") CurrentOrder.Complete();
         StopCoroutine(Move(_target));
     }
 
@@ -156,7 +209,9 @@ public class Unit : MonoBehaviour
     {
         if (Commandable && !IsDead)
         {
-            if (Target != null) StartCoroutine(AttackCoroutine());
+            Target = _target;
+            Queue.Clear();
+            StartCoroutine(AttackCoroutine());
         }
     } // Атака цели
     private IEnumerator AttackCoroutine()
@@ -165,29 +220,38 @@ public class Unit : MonoBehaviour
         {
             if (Vector3.Distance(transform.position, Target.transform.position) <= GetAttackRadius(this, Target))
             {
-                Damage(Target, AttackDamage);
+                if (Animator != null)
+                {
+                    Idle();
+                    Animator.SetBool("Idle", false);
+                    Animator.SetBool("Attack", true);
+                }
                 yield return new WaitForSeconds(AttackCooldown);
             }
-            else
+            
+            else if (Vector3.Distance(transform.position, Target.transform.position) > GetAttackRadius(this, Target))
             {
                 bool flag = false;
                 foreach (Order order in Queue)
                 {
-                    if (order == new Order(method => MoveTo(Target), "MoveTo"))
+                    if (order == new Order(method => MoveTo(Target), "Следовать за " + Target.name))
                     {
                         flag = true;
                     }
                 }
-                if (!flag) Queue.Add(new Order(method => MoveTo(Target), "MoveTo"));                
+                if (!flag) Queue.Add(new Order(method => MoveTo(Target), "Следовать за " + Target.name));                
                 yield return null;
             }
         }
+        Idle();
         if (Queue.Count > 0) CurrentOrder.Complete();
+
+        if (Target.IsDead) GetComponent<Enemy>().Patrol();
         Target = null;
     }
     /*==============================*/
 
-    /*========== ДЕЙСТВИЯ ==========*/
+            /*========== ДЕЙСТВИЯ ==========*/
     public void Jump()
     {
         if (CanJump && Commandable)
@@ -196,6 +260,10 @@ public class Unit : MonoBehaviour
             {
                 GetComponent<Rigidbody2D>().velocity = Vector2.up * JumpScale;
                 OnGround = false;
+                if (Animator != null)
+                {
+                    Animator.SetTrigger("Jump");
+                }
             }
             else
             {
@@ -203,18 +271,63 @@ public class Unit : MonoBehaviour
                 {
                     GetComponent<Rigidbody2D>().velocity = Vector2.up * JumpScale;
                     DoubleJumpsCount++;
+                    if (Animator != null)
+                    {
+                        Animator.SetTrigger("Jump");
+                    }
                 }
+            }
+
+            if (OnWall)
+            {
+                if (!GetComponent<SpriteRenderer>().flipX)
+                {
+                    GetComponent<Rigidbody2D>().velocity = new Vector2(-1, 1) * JumpScale;
+                    GetComponent<SpriteRenderer>().flipX = true;
+                }
+                else if (GetComponent<SpriteRenderer>().flipX)
+                {
+                    GetComponent<Rigidbody2D>().velocity = new Vector2(1, 1) * JumpScale;
+                    GetComponent<SpriteRenderer>().flipX = false;
+                }
+                Animator.SetTrigger("Jump");
             }
         }       
     }
     public void InstanceMoveTo(Vector2 _direction)
-    {       
-        transform.Translate(new Vector3(_direction.x, _direction.y, transform.position.z));
+    {
+        if (!OnWall) transform.Translate(new Vector3(_direction.x, _direction.y, transform.position.z));
+        else
+        {
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, _direction * (RigidbodyCollider.bounds.size.x / 2));
+            if (hit.collider != null && hit.collider.tag == "Obstacle")
+            {
+                OnWall = false;
+                if (Animator != null) Animator.ResetTrigger("Slide");
+                GetComponent<Rigidbody2D>().gravityScale = 1;
+            }
+        }
     } // Мгновенное перемещение в указанную точку
     public void Heal(Unit _target, byte _value)
     {
+        Debug.Log(_target.name + " " + _value);
         if (_target.Health + _value <= _target.MaxHealth) _target.Health += _value;
         else _target.Health = _target.MaxHealth;
+    }
+    public void Heal(Unit _target, byte _value, float _time)
+    {
+        StartCoroutine(PeriodicHeal(_target, _value, _time));
+    }
+    private IEnumerator PeriodicHeal(Unit _target, byte _value, float _time)
+    {
+        float elapsedTime = 0;
+        while (elapsedTime < _time)
+        {
+            Heal(_target, _value);
+            yield return new WaitForSeconds(1);
+            elapsedTime ++;
+        }
+        StopCoroutine(PeriodicHeal(_target, _value, _time));
     }
     public void Damage(Unit _target, byte _value)
     {
@@ -231,9 +344,31 @@ public class Unit : MonoBehaviour
             _target.Commandable = false;
             _target.Movable = false;
             _target.CanJump = false;
+            _target.RigidbodyCollider.isTrigger = true;
+            _target.GetComponent<Rigidbody2D>().gravityScale = 0;
+
+            if (_target.Animator != null)
+            {                
+                _target.Animator.SetTrigger("Death");
+            }
 
             if (_target == Player.Hero) Game.Defeat();
         }
+    }
+    public void Damage(Unit _target, byte _value, float _time)
+    {
+        StartCoroutine(PeriodicDamage(_target, _value, _time));
+    }
+    private IEnumerator PeriodicDamage(Unit _target, byte _value, float _time)
+    {
+        float elapsedTime = 0;
+        while (elapsedTime < _time)
+        {
+            Damage(_target, _value);
+            yield return new WaitForSeconds(1);
+            elapsedTime++;
+        }
+        StopCoroutine(PeriodicDamage(_target, _value, _time));
     }
     public void Kill(Unit _target)
     {        
@@ -245,7 +380,7 @@ public class Unit : MonoBehaviour
         Queue.Clear();
         CurrentOrder = null;
         StopAllCoroutines();
-        Animator.SetTrigger("Idle");
+        Idle();
     }
     /*===============================*/
 
@@ -269,7 +404,7 @@ public class Unit : MonoBehaviour
     {
         if (_first.Type == UnitType.MELEE && _second.Type == UnitType.MELEE)
         {
-            return GetPhysicRadius(_first, _second);
+            return GetPhysicRadius(_first, _second) * 1.2f;
         }
         else if (_first.Type == UnitType.MELEE && _second.Type == UnitType.RANGE)
         {
@@ -280,6 +415,11 @@ public class Unit : MonoBehaviour
         {
             float radius = GetPhysicRadius(_first, _second);
             return radius + _first.AttackRange;
+        }
+        else if (_first.Type == UnitType.RANGE && _second.Type == UnitType.RANGE)
+        {
+            float radius = GetPhysicRadius(_first, _second);
+            return radius + _first.AttackRange + _second.AttackRange;
         }
         return 0;
     }    
@@ -294,6 +434,37 @@ public class Unit : MonoBehaviour
             if (_unit != null) _unit.Remove();
         }
     }
+    public void Idle()
+    {
+        if (Animator != null)
+        {
+            Animator.SetBool("Attack", false);
+            Animator.SetBool("Fall", false);
+            Animator.SetBool("Jump", false);
+            Animator.SetBool("Walk", false);
+            Animator.SetBool("Slide", false);
+            Animator.SetBool("Range Attack", false);
+            Animator.SetBool("Idle", true);
+        }
+    }
+
+    /*=== СОБЫТЫЙНЫЕ ФУНКЦИИ ===*/
+    public void Hit()
+    {
+        if (Target != null && Vector3.Distance(transform.position, Target.transform.position) <= GetAttackRadius(this, Target) && !Target.IsDead && !IsDead)
+        {
+            StopCoroutine(HitCoroutine(Target));
+            Damage(Target, AttackDamage);
+            StartCoroutine(HitCoroutine(Target));
+        }        
+    }
+    private IEnumerator HitCoroutine(Unit _target)
+    {
+        _target.GetComponent<SpriteRenderer>().material.color = DefaultColor + Color.red;
+        yield return new WaitForSeconds(1);
+        _target.GetComponent<SpriteRenderer>().material.color = DefaultColor;
+        StopCoroutine(HitCoroutine(_target));
+    }
 
     /*========== КОЛЛИЗИЯ ==========*/
     private void OnCollisionEnter2D(Collision2D collision)
@@ -306,9 +477,48 @@ public class Unit : MonoBehaviour
                 if (contact.normal == Vector2.up) // Если нормаль хотя бы одной точки касания смотрит вверх - персонаж на земле
                 {
                     OnGround = true;
+                    OnWall = false;
+                    GetComponent<Rigidbody2D>().velocity = Vector2.zero;
                     DoubleJumpsCount = 0;
+                    SlidesCount = 0;
+                    if (Animator != null)
+                    {
+                        Animator.ResetTrigger("Jump");
+                        Animator.ResetTrigger("Fall");
+                    }
+                }            
+            }
+        }
+
+        if (collision.transform.tag == "Obstacle")
+        {
+            if (CanSlide && !OnGround)
+            {
+                foreach (ContactPoint2D contact in collision.contacts)
+                {
+                    if (contact.normal == Vector2.left || contact.normal == Vector2.right)
+                    {
+                        if (SlidesCount < SlidesCountMax)
+                        {
+                            OnWall = true;
+                            GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+                            GetComponent<Rigidbody2D>().gravityScale = 0;
+                            if (contact.normal == Vector2.left) GetComponent<SpriteRenderer>().flipX = false;
+                            if (contact.normal == Vector2.right) GetComponent<SpriteRenderer>().flipX = true;
+                            if (Animator != null) Animator.SetTrigger("Slide");
+                            SlidesCount++;
+                        }
+                    }
                 }
             }
         }
+    }
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        // Касание с землёй
+        if (collision.transform.tag == "Ground")
+        {
+            OnGround = false;            
+        }       
     }
 }

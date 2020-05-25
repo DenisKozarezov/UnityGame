@@ -20,7 +20,7 @@ public class Game : MonoBehaviour
             {
                 if (unit.tag == "Enemy")
                 {
-                    if (unit.GetComponent<Enemy>().OnPatrol) unit.Queue.Add(new Order(method => unit.GetComponent<Enemy>().Patrol(), "Patrol"));
+                    if (unit.GetComponent<Enemy>().OnPatrol) unit.Queue.Add(new Order(method => unit.GetComponent<Enemy>().Patrol(), "Патрулирование"));
                 }
             }
         }
@@ -28,10 +28,8 @@ public class Game : MonoBehaviour
     public static void Defeat()
     {
         IsDefeat = true;
-        CameraScript.Detach();
-
-        PlayerBar.Update(PlayerBar.PlayerBarType.HEALTH, -Player.Hero.Health, 1f);
-        GameObject.Find("Game Manager").GetComponent<Game>().StartCoroutine(DefeatNumerator(2f));
+        PlayerBar.Update(PlayerBar.PlayerBarType.HEALTH, -Player.Hero.Health, 1f);        
+        GameObject.Find("Game Manager").GetComponent<Game>().StartCoroutine(DefeatNumerator(5f));
     }
     public static void Pause()
     {
@@ -45,10 +43,10 @@ public class Game : MonoBehaviour
 
     private static IEnumerator DefeatNumerator(float _time)
     {
-        CameraScript.Fade(CameraScript.FadeState.IN, _time);
+        CameraScript.Fade(0.5f, _time);
+        CameraScript.Zoom(CameraScript.CurrentZoom + 2, _time);
         yield return new WaitForSeconds(_time);
 
-        //Player.Hero.Remove();
         Interface.Show(false);
         GameObject.Find("Canvas").GetComponent<Interface>().Close(GameObject.Find("Canvas").GetComponent<Interface>().GameMenuPanel);
         GameObject.Find("Canvas").GetComponent<Interface>().Open(GameObject.Find("Canvas").GetComponent<Interface>().DefeatPanel);

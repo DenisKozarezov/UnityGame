@@ -15,7 +15,7 @@ public class Options : MonoBehaviour
     private static KeyCode DefaultDeveloperPanel { set; get; } = KeyCode.BackQuote;
 
     private static bool DefaultTipsOn { set; get; } = true;
-    private static float DefaultCameraAttachedDepth { set; get; } = 1.3f;
+    private static float DefaultCameraAttachedDepth { set; get; } = 0.5f;
     private static float DefaultCameraAttachedSpeed { set; get; } = 0.8f;
     private static float DefaultCameraAttachedThreshold { set; get; } = 0.3f;
 

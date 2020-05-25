@@ -21,8 +21,10 @@ public class UnitLayout : Editor
     SerializedProperty Stunned;
     SerializedProperty Silenced;
     SerializedProperty CanJump;
+    SerializedProperty CanSlide;
 
     SerializedProperty OnGround;
+    SerializedProperty OnWall;
 
     SerializedProperty Health;
     SerializedProperty MaxHealth;
@@ -49,7 +51,10 @@ public class UnitLayout : Editor
     bool AddAbility;
     Vector2 AddAbilityScrollPos;
     Vector2 UnitAbilitiesScrollPos;
+
     AnimBool AbilitiesFoldoutValue;
+    bool UpdateAbility;
+    AnimBool UpdateFoldoutValue;
     const int ItemHeight = 50;
     public void OnEnable()
     {
@@ -71,7 +76,9 @@ public class UnitLayout : Editor
         Movable = soTarget.FindProperty("Movable");
         Silenced = soTarget.FindProperty("Silenced");
         CanJump = soTarget.FindProperty("CanJump");
+        CanSlide = soTarget.FindProperty("CanSlide");
         OnGround = soTarget.FindProperty("OnGround");
+        OnWall = soTarget.FindProperty("OnWall");
         Health = soTarget.FindProperty("Health");
         MaxHealth = soTarget.FindProperty("MaxHealth");
         Mana = soTarget.FindProperty("Mana");
@@ -96,7 +103,9 @@ public class UnitLayout : Editor
         EditorGUILayout.PropertyField(Stunned, new GUIContent("Оглушён"));
         EditorGUILayout.PropertyField(Silenced, new GUIContent("Безмолвен"));
         EditorGUILayout.PropertyField(CanJump, new GUIContent("Может прыгать"));
+        EditorGUILayout.PropertyField(CanSlide, new GUIContent("Может сползать"));
         EditorGUILayout.PropertyField(OnGround, new GUIContent("На земле"));
+        EditorGUILayout.PropertyField(OnWall, new GUIContent("На стене"));
         EditorGUILayout.PropertyField(Health, new GUIContent("Здоровье"));
         EditorGUILayout.PropertyField(MaxHealth, new GUIContent("Макс. здоровье"));
         EditorGUILayout.PropertyField(Mana, new GUIContent("Мана"));
@@ -115,11 +124,14 @@ public class UnitLayout : Editor
         EditorGUILayout.PropertyField(RigidbodyCollider, new GUIContent("Коллайдер"));
 
         EditorGUILayout.PropertyField(Queue, new GUIContent("Очередь приказов"));
-        if (Target.Queue.Count > 0)
+        if (Application.isPlaying)
         {
-            for (int i = 0; i < Target.Queue.Count; i++)
+            if (Target.Queue.Count > 0)
             {
-                EditorGUILayout.LabelField("[" + i + "]     Приказ:    " + Target.Queue[i].Name + "     Статус:     " + Target.Queue[i].State.ToString());
+                for (int i = 0; i < Target.Queue.Count; i++)
+                {
+                    EditorGUILayout.LabelField("[" + (i + 1) + "]     Приказ:    " + Target.Queue[i].Name + "     Статус:     " + Target.Queue[i].State.ToString());
+                }
             }
         }
 
@@ -151,19 +163,16 @@ public class UnitLayout : Editor
                 for (int i = 0; i < Target.Abilities.Count; i++)
                 {
                     EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("[" + i + "]", GUILayout.Width(20), GUILayout.Height(ItemHeight));
+                    EditorGUILayout.LabelField("[" + (i + 1) + "]", GUILayout.Width(20), GUILayout.Height(ItemHeight));
 
                     GUIStyle style = new GUIStyle();
                     style.normal.background = Target.Abilities[i].GetIcon();
-                style.alignment = TextAnchor.MiddleCenter;
+                    style.alignment = TextAnchor.MiddleCenter;
                     EditorGUILayout.LabelField("", style, GUILayout.Width(ItemHeight), GUILayout.Height(ItemHeight));
                     EditorGUILayout.LabelField(Target.Abilities[i].Name, itemStyle, GUILayout.Width(120), GUILayout.Height(ItemHeight));
                     EditorGUILayout.LabelField("Перезарядка: ", itemStyle, GUILayout.Width(90), GUILayout.Height(ItemHeight));
                     EditorGUILayout.LabelField(Target.Abilities[i].Cooldown.ToString() + " сек.", itemStyle, GUILayout.Width(50), GUILayout.Height(ItemHeight));
-                    if (GUILayout.Button("Изменить", GUILayout.Height(ItemHeight)))
-                    {
 
-                    }
                     if (GUILayout.Button("Удалить", GUILayout.Height(ItemHeight)))
                     {
                         Undo.RecordObject(target, "Remove Ability");
@@ -192,7 +201,7 @@ public class UnitLayout : Editor
                     for (int i = 0; i < data.Abilities.Count; i++)
                     {
                         EditorGUILayout.BeginHorizontal();
-                        EditorGUILayout.LabelField("[" + i + "]", GUILayout.Width(20), GUILayout.Height(ItemHeight));
+                        EditorGUILayout.LabelField("[" + (i + 1) + "]", GUILayout.Width(20), GUILayout.Height(ItemHeight));
                         GUIStyle style = new GUIStyle();
                         style.normal.background = data.Abilities[i].GetIcon();
                         EditorGUILayout.LabelField("", style, GUILayout.Width(ItemHeight), GUILayout.Height(ItemHeight));
@@ -200,14 +209,50 @@ public class UnitLayout : Editor
                         {
                             Undo.RecordObject(target, "Add Ability");
                             Target.Abilities.Add(data.Abilities[i]);
+                            switch (data.Abilities[i].TargetType)
+                            {
+                                case Ability.AbilityTarget.CASTER:
+                                    Debug.Log(Target.Abilities[Target.Abilities.Count - 1].Name);
+                                    Target.Abilities[Target.Abilities.Count - 1].Action.Target = Target;
+                                    Target.Abilities[Target.Abilities.Count - 1].Action.Method = () =>
+                                    {
+                                        Target.Heal(Target, 10);
+                                    };
+                                    Debug.Log(Target.Abilities[Target.Abilities.Count - 1].Action.Target.ToString());
+                                    break;
+                                case Ability.AbilityTarget.HERO:                                    
+                                    
+                                    break;
+                                case Ability.AbilityTarget.UNIT:
+
+                                    break;
+                                case Ability.AbilityTarget.HEROANDUNIT:
+                                    
+                                    break;
+                            }
+                            
                         }
-                        EditorGUILayout.LabelField("Перезарядка: ", itemStyle, GUILayout.Width(90), GUILayout.Height(ItemHeight));
-                        EditorGUILayout.LabelField(data.Abilities[i].Cooldown.ToString() + " сек.", itemStyle, GUILayout.Width(50), GUILayout.Height(ItemHeight));
+
+                        switch (data.Abilities[i].TargetType)
+                        {
+                            case Ability.AbilityTarget.CASTER:
+                                EditorGUILayout.LabelField("Цель: Заклинатель", itemStyle, GUILayout.Width(100), GUILayout.Height(ItemHeight));
+                                break;
+                            case Ability.AbilityTarget.HERO:
+                                EditorGUILayout.LabelField("Цель: Герой", itemStyle, GUILayout.Width(100), GUILayout.Height(ItemHeight));
+                                break;
+                            case Ability.AbilityTarget.UNIT:
+                                EditorGUILayout.LabelField("Цель: Юнит", itemStyle, GUILayout.Width(100), GUILayout.Height(ItemHeight));
+                                break;
+                            case Ability.AbilityTarget.HEROANDUNIT:
+                                EditorGUILayout.LabelField("Цель: Юнит и Герой", itemStyle, GUILayout.Width(100), GUILayout.Height(ItemHeight));
+                                break;
+                        }
                         EditorGUILayout.EndHorizontal();
                     }
                     EditorGUILayout.EndScrollView();
                 }
-                else EditorGUILayout.HelpBox("В базе данных отсутствуют способности. Для продолжения добавьте способность в Tools/Game Data.", MessageType.Warning);
+                else EditorGUILayout.HelpBox("В базе данных отсутствуют способности.", MessageType.Warning);
                 EditorGUILayout.EndVertical();
             }
         }
@@ -215,8 +260,6 @@ public class UnitLayout : Editor
         EditorGUI.EndChangeCheck();
 
         soTarget.ApplyModifiedProperties();
-
-
     }
 }
 #endif

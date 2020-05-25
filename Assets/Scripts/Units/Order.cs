@@ -17,7 +17,8 @@ public class Order : MonoBehaviour
     public Order(Action<object[]> method, string _name)
     {
         Action = method;
-        Name = _name;
+        if (_name != "") Name = _name;
+        else Name = "Безымянный приказ";
     }
 
     public static bool OverlapInList(List<Order> list, string method)

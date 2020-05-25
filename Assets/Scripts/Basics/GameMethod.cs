@@ -3,26 +3,23 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 [Serializable]
 public class Action
 {
-    public string Name;
-    public static Action Last;
-    public static int Count = 0;
     public enum ActionTier1Type { HEALING, DESTRUCTION, BUFF, DEBUFF, CREATION, PROTECTION }
     public ActionTier1Type ActionType;
 
-    public System.Action<object[]> Method;
-    public Action(string name) {
-        Name = name;
-        if (Last != null)
-        {
-            Debug.Log("DELETING LAST = " + this);
-            Count--;
-            Last = null;
-        }
-        Debug.Log("COUNT =" + Count);
+    public float Value = 0;
+    public float Time = 0;
+
+    public object Target;
+    public System.Action Method;
+
+    public void Cast()
+    {
+        Method.Invoke();
     }
 }
 
@@ -31,14 +28,23 @@ public class HealingAction : Action
 {
     public enum Healing { INSTANCE, PERIODIC }
     public Healing HealingType;
-
-    public HealingAction(string name, int index) : base(name)
-    {
-        HealingType = (Healing)index;
+    public HealingAction(byte value)
+    {        
         ActionType = ActionTier1Type.HEALING;
-        Count++;
-        Last = this;
-        Debug.Log("CREATING LAST = " + this);
+        HealingType = Healing.INSTANCE;
+        Value = value;
+        Method = () =>
+        {
+            Unit dummy = new Unit();
+            dummy.Heal(dummy, (byte)Value);
+        };
+    }
+    public HealingAction(byte value, float time)
+    {
+        ActionType = ActionTier1Type.HEALING;
+        HealingType = Healing.PERIODIC;
+        Value = value;
+        Time = time;
     }
 }
 
@@ -48,13 +54,22 @@ public class DestructionAction : Action
     public enum Destruction { INSTANCE, PERIODIC }
     public Destruction DestructionType;
 
-    public DestructionAction(string name, int index) : base(name)
-    {
-        DestructionType = (Destruction)index;
+    System.Action<Unit> DestructionMethod;
+
+    public DestructionAction(byte value, Ability.AbilityTarget target)
+    {        
         ActionType = ActionTier1Type.DESTRUCTION;
-        Count++;
-        Last = this;
-        Debug.Log("CREATING LAST = " + this);
+        DestructionType = Destruction.INSTANCE;
+        Value = value;
+        Target = target;
+    }
+    public DestructionAction(byte value, float time, Ability.AbilityTarget target)
+    {
+        ActionType = ActionTier1Type.DESTRUCTION;
+        DestructionType = Destruction.PERIODIC;
+        Value = value;
+        Time = time;
+        Target = target;
     }
 }
 
@@ -64,61 +79,53 @@ public class BuffAction : Action
     public enum Buff { HEALTH, MANA, DAMAGE, ATTACKRANGE, SPEED }
     public Buff BuffType;
 
-    public BuffAction(string name, int index) : base(name)
+    public BuffAction(byte value, Buff buffType, Ability.AbilityTarget target)
     {
-        BuffType = (Buff)index;
         ActionType = ActionTier1Type.BUFF;
-        Count++;
-        Last = this;
-        Debug.Log("CREATING LAST = " + this);
+        BuffType = buffType;
+        Value = value;
+        Target = target;
     }
 }
 
 [Serializable]
 public class DebuffAction : Action
 {
-    public enum Destruction { INSTANCE, PERIODIC }
-    public Destruction HealingType;
+    public enum Debuff { HEALTH, MANA, DAMAGE, ATTACKRANGE, SPEED }
+    public Debuff DebuffType;
 
-    public DebuffAction(string name, int index) : base(name)
+    public DebuffAction(byte value, Debuff debuffType, Ability.AbilityTarget target)
     {
-        HealingType = (Destruction)index;
-        ActionType = ActionTier1Type.DESTRUCTION;
-        Count++;
-        Last = this;
-        Debug.Log("CREATING LAST = " + this);
+        ActionType = ActionTier1Type.BUFF;
+        DebuffType = debuffType;
+        Value = value;
+        Target = target;
     }
 }
 
 [Serializable]
 public class CreationAction : Action
 {
-    public enum Destruction { INSTANCE, PERIODIC }
-    public Destruction HealingType;
+    public enum Creation { MAGIC }
+    public Creation CreationType;
 
-    public CreationAction(string name, int index) : base(name)
+    public CreationAction(int index)
     {
-        HealingType = (Destruction)index;
-        ActionType = ActionTier1Type.DESTRUCTION;
-        Count++;
-        Last = this;
-        Debug.Log("CREATING LAST = " + this);
+        CreationType = (Creation)index;
+        ActionType = ActionTier1Type.CREATION;
     }
 }
 
 [Serializable]
 public class ProtectionAction : Action
 {
-    public enum Destruction { INSTANCE, PERIODIC }
-    public Destruction HealingType;
+    public enum Protection { TELEPORT, ABSORPTION }
+    public Protection ProtectionType;
 
-    public ProtectionAction(string name, int index) : base(name)
+    public ProtectionAction(int index)
     {
-        HealingType = (Destruction)index;
-        ActionType = ActionTier1Type.DESTRUCTION;
-        Count++;
-        Last = this;
-        Debug.Log("CREATING LAST = " + this);
+        ProtectionType = (Protection)index;
+        ActionType = ActionTier1Type.PROTECTION;
     }
 }
 

@@ -46,6 +46,7 @@ public class DataBase : EditorWindow
     
     int AbilityType;
     int AbilityTarget;
+    object Target;
 
     int ItemType;
     int ItemCharacteristic;
@@ -57,6 +58,7 @@ public class DataBase : EditorWindow
     List<int> FindListIndexes = new List<int>();
     
     GUIStyle DefaultItemStyle = new GUIStyle();
+    GUIStyle SelectedItemStyle = new GUIStyle();
 
     List<Ability> Abilities = new List<Ability>();
     List<Item> Items = new List<Item>();
@@ -67,11 +69,8 @@ public class DataBase : EditorWindow
     bool AddAction;
     Action Action;
 
-    byte HealingValue;
-    float HealingPeriod;
-
-    byte DamageValue;
-    float DamagePeriod;
+    float Value;
+    float Time;
 
     [MenuItem("Tools/Game Data")]
     public static void ShowWindow()
@@ -111,8 +110,12 @@ public class DataBase : EditorWindow
         propertyStyle.fontSize = 14;
 
         DefaultItemStyle.alignment = TextAnchor.MiddleCenter;
-        DefaultItemStyle.normal.background = Texture2D.grayTexture;
-        DefaultItemStyle.normal.textColor = Color.white;
+        DefaultItemStyle.normal.background = Texture2D.whiteTexture;
+        DefaultItemStyle.normal.textColor = Color.black;
+
+        SelectedItemStyle.alignment = TextAnchor.MiddleCenter;
+        SelectedItemStyle.normal.background = Texture2D.grayTexture;
+        SelectedItemStyle.normal.textColor = Color.white;
         #endregion
 
         GUILayout.BeginHorizontal();
@@ -129,6 +132,7 @@ public class DataBase : EditorWindow
             CurrentItem = null;
             Icon = null;
             AddAction = false;
+            Action = null;
             switch (ContentType)
             {
                 case OptionType.ABILITIES:
@@ -159,6 +163,7 @@ public class DataBase : EditorWindow
             CurrentItem = null;
             Icon = null;
             AddAction = false;
+            Action = null;
             switch (ContentType)
             {
                 case OptionType.ABILITIES:
@@ -191,6 +196,7 @@ public class DataBase : EditorWindow
         EditorGUILayout.BeginVertical();
         if (GUI.Button(new Rect(0, ContentPadding - ButtonHeight - ContentItemHeight / 2, ButtonWidth, ButtonHeight), "Добавить"))
         {
+            Action = null;
             switch (ContentType)
             {
                 case OptionType.ABILITIES:
@@ -203,6 +209,7 @@ public class DataBase : EditorWindow
         }
         if (GUI.Button(new Rect(AreaWidth - ButtonWidth, ContentPadding - ButtonHeight - ContentItemHeight / 2, ButtonWidth, ButtonHeight), "Удалить"))
         {
+            Action = null;
             switch (ContentType)
             {
                 case OptionType.ABILITIES:
@@ -378,11 +385,9 @@ public class DataBase : EditorWindow
                     case 1:                        
 
                         break;
-                }
-                
+                }                
                 break;
-            case OptionType.ITEMS:
-                
+            case OptionType.ITEMS:                
                 EditorGUILayout.LabelField("Тип предмета", propertyStyle, GUILayout.Width(100));
                 string[] itemType = { "Активный", "Пассивный" };
                 ItemType = EditorGUILayout.Popup(ItemType, itemType, GUILayout.Width(90));                
@@ -498,26 +503,121 @@ public class DataBase : EditorWindow
             {
                 case OptionType.ABILITIES:
                     Ability ability = (Ability)CurrentItem;
-                    if (ability.Action != null)
+                    if (ability.Action != null && !AddAction)
                     {
-                        EditorGUILayout.LabelField("Эффект: " + ability.Action.Name);
+                        switch (ability.Action.ActionType)
+                        {
+                            case Action.ActionTier1Type.HEALING:
+                                HealingAction healing = (HealingAction)ability.Action;
+                                EditorGUILayout.LabelField("Категория: Исцеление");
+                                switch (healing.HealingType)
+                                {
+                                    case HealingAction.Healing.INSTANCE:
+                                        EditorGUILayout.LabelField("Эффект: Мгновенное исцеление");
+                                        break;
+                                    case HealingAction.Healing.PERIODIC:
+                                        EditorGUILayout.LabelField("Эффект: Периодическое исцеление");
+                                        break;
+                                }
+                                break;
+                            case Action.ActionTier1Type.DESTRUCTION:
+                                DestructionAction destruction = (DestructionAction)ability.Action;
+                                EditorGUILayout.LabelField("Категория: Разрушение");
+                                switch (destruction.DestructionType)
+                                {
+                                    case DestructionAction.Destruction.INSTANCE:
+                                        EditorGUILayout.LabelField("Эффект: Мгновенное урон");
+                                        break;
+                                    case DestructionAction.Destruction.PERIODIC:
+                                        EditorGUILayout.LabelField("Эффект: Периодический урон");
+                                        break;
+                                }
+                                break;
+                            case Action.ActionTier1Type.BUFF:
+                                EditorGUILayout.LabelField("Категория: Усиление");
+                                break;
+                            case Action.ActionTier1Type.DEBUFF:
+                                EditorGUILayout.LabelField("Категория: Ослабление");
+                                break;
+                            case Action.ActionTier1Type.CREATION:
+                                EditorGUILayout.LabelField("Категория: Созидание");
+                                break;
+                            case Action.ActionTier1Type.PROTECTION:
+                                EditorGUILayout.LabelField("Категория: Защита");
+                                break;
+                        }
+                        EditorGUILayout.Space(20);
+                        if (GUILayout.Button("Изменить"))
+                        {
+                            AddAction = !AddAction;
+                        }
                     }
                     else
                     {
-                        EditorGUILayout.HelpBox("У этой способности нет действия.", MessageType.Warning);
-                        if (GUILayout.Button("Добавить действие")) AddAction = !AddAction;
+                        if (!AddAction)
+                        {
+                            EditorGUILayout.HelpBox("У этой способности нет действия.", MessageType.Warning);
+                            if (GUILayout.Button("Добавить действие")) AddAction = !AddAction;
+                        }
                     }
                     break;
                 case OptionType.ITEMS:
                     Item item = (Item)CurrentItem;
-                    if (item.Action != null)
+                    if (item.Action != null && !AddAction)
                     {
-                        EditorGUILayout.LabelField("Эффект: " + item.Action.Name);
+                        switch (item.Action.ActionType)
+                        {
+                            case Action.ActionTier1Type.HEALING:
+                                HealingAction healing = (HealingAction)item.Action;
+                                EditorGUILayout.LabelField("Категория: Исцеление");
+                                switch (healing.HealingType)
+                                {
+                                    case HealingAction.Healing.INSTANCE:
+                                        EditorGUILayout.LabelField("Эффект: Мгновенное исцеление");
+                                        break;
+                                    case HealingAction.Healing.PERIODIC:
+                                        EditorGUILayout.LabelField("Эффект: Периодическое исцеление");
+                                        break;
+                                }
+                                break;
+                            case Action.ActionTier1Type.DESTRUCTION:
+                                DestructionAction destruction = (DestructionAction)item.Action;
+                                EditorGUILayout.LabelField("Категория: Разрушение");
+                                switch (destruction.DestructionType)
+                                {
+                                    case DestructionAction.Destruction.INSTANCE:
+                                        EditorGUILayout.LabelField("Эффект: Мгновенное урон");
+                                        break;
+                                    case DestructionAction.Destruction.PERIODIC:
+                                        EditorGUILayout.LabelField("Эффект: Периодический урон");
+                                        break;
+                                }
+                                break;
+                            case Action.ActionTier1Type.BUFF:
+                                EditorGUILayout.LabelField("Категория: Усиление");
+                                break;
+                            case Action.ActionTier1Type.DEBUFF:
+                                EditorGUILayout.LabelField("Категория: Ослабление");
+                                break;
+                            case Action.ActionTier1Type.CREATION:
+                                EditorGUILayout.LabelField("Категория: Созидание");
+                                break;
+                            case Action.ActionTier1Type.PROTECTION:
+                                EditorGUILayout.LabelField("Категория: Защита");
+                                break;
+                        }
+                        if (GUILayout.Button("Изменить"))
+                        {
+                            AddAction = !AddAction;
+                        }
                     }
                     else
                     {
-                        EditorGUILayout.HelpBox("У этой предмета нет действия.", MessageType.Warning);
-                        if (GUILayout.Button("Добавить действие")) AddAction = !AddAction;
+                        if (!AddAction)
+                        {
+                            EditorGUILayout.HelpBox("У этого предмета нет действия.", MessageType.Warning);
+                            if (GUILayout.Button("Добавить действие")) AddAction = !AddAction;
+                        }
                     }
                     break;
             }
@@ -535,35 +635,7 @@ public class DataBase : EditorWindow
 
         GUILayout.EndHorizontal();
 
-        if (GUI.changed)
-        {
-            if (CurrentItem != null)
-            {
-                if (CurrentItem.GetType() == typeof(Ability))
-                {
-                    Ability ability = (Ability)CurrentItem;
-                    ability.Name = Name;
-                    ability.Description = Description;
-                    ability.Cooldown = Cooldown;
-                    ability.Type = (Ability.AbilityType)AbilityType;
-                    ability.Range = Range;
-                    ability.TargetType = (Ability.AbilityTarget)AbilityTarget;
-                    ability.Action = Action;
-                }
-                else if (CurrentItem.GetType() == typeof(Item))
-                {
-                    Item item = (Item)CurrentItem;
-                    item.Name = Name;
-                    item.Description = Description;
-                    item.Cooldown = Cooldown;
-                    item.Type = (Item.ItemType)ItemType;
-                    item.Charges = ItemCharges;
-                    item.Characteristic = (Item.ItemCharacteristic)ItemCharacteristic;
-                    item.Probability = ItemProbability;
-                    item.Action = Action;
-                }
-            }    
-        }
+        if (GUI.changed) SaveItem();
     }
 
     private void ShowItemInfo(object _item)
@@ -629,169 +701,126 @@ public class DataBase : EditorWindow
     private void ShowAddAction()
     {     
         EditorGUILayout.BeginHorizontal();
-        ActionTier1 = EditorGUILayout.BeginScrollView(ActionTier1, GUILayout.Width(130), GUILayout.Height(ActionTier1Height));
-        string[] actionType = { "Исцеление",
+        EditorGUILayout.LabelField("Категория ", GUILayout.Width(70));
+        string[] actionType = { 
+            "Исцеление",
             "Разрушение",
             "Усиление",
             "Ослабление",
             "Созидание",
             "Защита",
-        };
-        ActionTier1Height = actionType.Length * ContentItemHeight;
-        for (int i = 0; i < actionType.Length; i++)
-        {
-            if (GUILayout.Button(actionType[i], GUILayout.Height(ContentItemHeight))) ActionTier1Index = i;
-        }
-        EditorGUILayout.EndScrollView();
-
-        ActionTier2 = EditorGUILayout.BeginScrollView(ActionTier2, GUILayout.Width(130), GUILayout.Height(ActionTier2Height));
+        };        
+        ActionTier1Index = EditorGUILayout.Popup(ActionTier1Index, actionType, GUILayout.Width(100));
+        EditorGUILayout.LabelField("Эффект ", GUILayout.Width(50));
         switch (ActionTier1Index)
         {
             case (int)Action.ActionTier1Type.HEALING:
-                string[] healingType = { "Мгновенное", "Периодическое" };
-                ActionTier2Height = healingType.Length * ContentItemHeight;
-                for (int i = 0; i < healingType.Length; i++)
+                string[] healing =
                 {
-                    if (GUILayout.Button(healingType[i], GUILayout.Height(ContentItemHeight)))
-                    {
-                        Action = new HealingAction(healingType[i] + " исцеление", i);
-                        ActionTier2Index = i;
-                    }
-                }
+                    "Мгновенное",
+                    "Периодическое"
+                };
+                ActionTier2Index = EditorGUILayout.Popup(ActionTier2Index, healing, GUILayout.Width(150));
                 break;
             case (int)Action.ActionTier1Type.DESTRUCTION:
-                string[] destructionType = { "Мгновенный урон", "Периодическй урон" };
-                ActionTier2Height = (destructionType.Length + 1) * ContentItemHeight;
-                for (int i = 0; i < destructionType.Length; i++)
+                string[] destruction =
                 {
-                    if (GUILayout.Button(destructionType[i], GUILayout.Height(ContentItemHeight)))
-                    {
-                        Action = new DestructionAction(destructionType[i], i);
-                        ActionTier2Index = i;
-                    }
-                }
+                    "Мгновенное",
+                    "Периодическое"
+                };
+                ActionTier2Index = EditorGUILayout.Popup(ActionTier2Index, destruction, GUILayout.Width(150));
                 break;
             case (int)Action.ActionTier1Type.BUFF:
-                string[] buffType = {
+                string[] buff =
+                {
                     "Здоровье",
                     "Мана",
                     "Урон",
                     "Дальность атаки",
                     "Скорость"
                 };
-                ActionTier2Height = buffType.Length * ContentItemHeight;
-                for (int i = 0; i < buffType.Length; i++)
-                {
-                    if (GUILayout.Button(buffType[i], GUILayout.Height(ContentItemHeight)))
-                    {
-                        Action = new BuffAction(buffType[i], i);
-                        ActionTier2Index = i;
-                    }
-                }
+                ActionTier2Index = EditorGUILayout.Popup(ActionTier2Index, buff, GUILayout.Width(150));
                 break;
             case (int)Action.ActionTier1Type.DEBUFF:
-                string[] debuffType = {
+                string[] debuff =
+                {
                     "Здоровье",
                     "Мана",
                     "Урон",
                     "Дальность атаки",
                     "Скорость"
                 };
-                ActionTier2Height = debuffType.Length * ContentItemHeight;
-                for (int i = 0; i < debuffType.Length; i++)
-                {
-                    if (GUILayout.Button(debuffType[i], GUILayout.Height(ContentItemHeight)))
-                    {
-                        Action = new DebuffAction(debuffType[i], i);
-                        ActionTier2Index = i;
-                    }
-                }
+                ActionTier2Index = EditorGUILayout.Popup(ActionTier2Index, debuff, GUILayout.Width(150));
                 break;
             case (int)Action.ActionTier1Type.CREATION:
-                string[] creationType = { "Создать" };
-                ActionTier2Height = (creationType.Length + 1) * ContentItemHeight;
-                for (int i = 0; i < creationType.Length; i++)
+                string[] creaction =
                 {
-                    if (GUILayout.Button(creationType[i], GUILayout.Height(ContentItemHeight)))
-                    {
-                        Action = new CreationAction(creationType[i], i);
-                        ActionTier2Index = i;
-                    }
-                }
+                    "Колдовство",
+                };
+                ActionTier2Index = EditorGUILayout.Popup(ActionTier2Index, creaction, GUILayout.Width(150));
                 break;
             case (int)Action.ActionTier1Type.PROTECTION:
-                string[] protectionType = { "Отражение", "Поглощение", "Рывок", "Телепортация", "Бессмертие" };
-                ActionTier2Height = (protectionType.Length) * ContentItemHeight;
-                for (int i = 0; i < protectionType.Length; i++)
+                string[] protection =
                 {
-                    if (GUILayout.Button(protectionType[i], GUILayout.Height(ContentItemHeight)))
-                    {
-                        Action = new ProtectionAction(protectionType[i], i);
-                        ActionTier2Index = i;
-                    }
-                }
+                    "Телепортация",
+                    "Поглощение"
+                };
+                ActionTier2Index = EditorGUILayout.Popup(ActionTier2Index, protection, GUILayout.Width(150));
                 break;
         }
-        EditorGUILayout.EndScrollView();
 
-        EditorGUILayout.BeginVertical();
-        if (Action != null)
+        EditorGUILayout.EndHorizontal();
+
+        EditorGUILayout.BeginHorizontal();
+        if (GUILayout.Button("Применить"))
         {
-            if (Action.GetType() == typeof(HealingAction) && ActionTier1Index == (int)Action.ActionTier1Type.HEALING)
+            switch (ContentType)
             {
-                EditorGUILayout.BeginHorizontal();
-                HealingAction healing = (HealingAction)Action;
-                EditorGUILayout.LabelField("Объём исцеления", GUILayout.Width(130));
-                HealingValue = (byte)EditorGUILayout.IntField(HealingValue, GUILayout.Width(50));
-                EditorGUILayout.LabelField("ед.");
-                if (healing.HealingType == HealingAction.Healing.PERIODIC)
-                {
-                    EditorGUILayout.EndHorizontal();
-                    EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("Период", GUILayout.Width(60));
-                    HealingPeriod = EditorGUILayout.FloatField(HealingPeriod, GUILayout.Width(50));
-                    if (HealingPeriod < 0) HealingPeriod = 0;
-                    EditorGUILayout.LabelField("сек.");
-                }
-                EditorGUILayout.EndHorizontal();
-            }
-            else if (Action.GetType() == typeof(DestructionAction) && ActionTier1Index == (int)Action.ActionTier1Type.DESTRUCTION)
-            {
-                EditorGUILayout.BeginHorizontal();
-                DestructionAction damage = (DestructionAction)Action;
-                EditorGUILayout.LabelField("Наносимый урон", GUILayout.Width(130));
-                DamageValue = (byte)EditorGUILayout.IntField(DamageValue, GUILayout.Width(50));
-                EditorGUILayout.LabelField("ед.");
-                if (damage.DestructionType == DestructionAction.Destruction.PERIODIC)
-                {
-                    EditorGUILayout.EndHorizontal();
-                    EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("Период", GUILayout.Width(60));
-                    DamagePeriod = EditorGUILayout.FloatField(DamagePeriod, GUILayout.Width(50));
-                    if (DamagePeriod < 0) HealingPeriod = 0;
-                    EditorGUILayout.LabelField("сек.");
-                }
-                EditorGUILayout.EndHorizontal();
-            }
-            else if (Action.GetType() == typeof(BuffAction) && ActionTier1Index == (int)Action.ActionTier1Type.BUFF)
-            {
-
-            }
-            else if (Action.GetType() == typeof(DebuffAction) && ActionTier1Index == (int)Action.ActionTier1Type.DEBUFF)
-            {
-
-            }
-            else if (Action.GetType() == typeof(CreationAction) && ActionTier1Index == (int)Action.ActionTier1Type.CREATION)
-            {
-
-            }
-            else if (Action.GetType() == typeof(ProtectionAction) && ActionTier1Index == (int)Action.ActionTier1Type.PROTECTION)
-            {
-
+                case OptionType.ABILITIES:
+                    Ability ability = (Ability)CurrentItem;
+                    ability.Action = CreateAction();
+                    break;
+                case OptionType.ITEMS:
+                    Item item = (Item)CurrentItem;
+                    item.Action = CreateAction();
+                    break;
             }
         }
-        EditorGUILayout.EndVertical();
+        EditorGUILayout.Space(100);
+        if (GUILayout.Button("Отменить"))
+        {
+            AddAction = false;
+        }
         EditorGUILayout.EndHorizontal();
+    }
+    private Action CreateAction()
+    {
+        switch (ActionTier1Index)
+        {
+            case (int)Action.ActionTier1Type.HEALING:
+                switch (ActionTier2Index)
+                {
+                    case (int)HealingAction.Healing.INSTANCE:
+                        return new HealingAction((byte)Value);
+                    case (int)HealingAction.Healing.PERIODIC:
+                        return new HealingAction((byte)Value, Time);
+                    default: return null;
+                }
+            case (int)Action.ActionTier1Type.DESTRUCTION:
+                switch (ActionTier2Index)
+                {
+                    case (int)DestructionAction.Destruction.INSTANCE:
+                        return new DestructionAction((byte)Value, (Ability.AbilityTarget)AbilityTarget);
+                    case (int)DestructionAction.Destruction.PERIODIC:
+                        return new DestructionAction((byte)Value, Time, (Ability.AbilityTarget)AbilityTarget);
+                    default: return null;
+                }
+            case (int)Action.ActionTier1Type.BUFF:
+                return new BuffAction((byte)Value, (BuffAction.Buff)ActionTier2Index, (Ability.AbilityTarget)AbilityTarget);
+            case (int)Action.ActionTier1Type.DEBUFF:
+                return new DebuffAction((byte)Value, (DebuffAction.Debuff)ActionTier2Index, (Ability.AbilityTarget)AbilityTarget);
+            default: return null;
+        }
     }
     private void SelectItem(OptionType type, int index)
     {
@@ -804,6 +833,37 @@ public class DataBase : EditorWindow
             case OptionType.ITEMS:
                 CurrentItem = Items[CurrentIndex];
                 break;
+        }
+    }
+    private void SaveItem()
+    {
+        if (CurrentItem != null)
+        {
+            if (CurrentItem.GetType() == typeof(Ability))
+            {
+                Ability ability = (Ability)CurrentItem;
+                ability.Name = Name;
+                ability.Description = Description;
+                ability.Cooldown = Cooldown;
+                ability.Type = (Ability.AbilityType)AbilityType;
+                ability.Range = Range;
+                ability.TargetType = (Ability.AbilityTarget)AbilityTarget;
+            }
+            else if (CurrentItem.GetType() == typeof(Item))
+            {
+                Item item = (Item)CurrentItem;
+                item.Name = Name;
+                item.Description = Description;
+                item.Cooldown = Cooldown;
+                item.Type = (Item.ItemType)ItemType;
+                item.Charges = ItemCharges;
+                item.Characteristic = (Item.ItemCharacteristic)ItemCharacteristic;
+                item.Probability = ItemProbability;
+            }
+
+            DataObject data = new DataObject(Abilities, Items);
+            GameData.Save(GameData.DataBasePath, data);
+            Action = null;
         }
     }
 }

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 [Serializable]
@@ -44,8 +46,8 @@ public class Ability
         }
         else return Texture2D.grayTexture;
     }
-    public void Cast(object[] arguments)
+    public void Cast()
     {
-           
+        if (Action != null && Action.Method != null) Action.Method.Invoke();
     }
 }
