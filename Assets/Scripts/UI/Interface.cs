@@ -15,12 +15,6 @@ public class Interface : MonoBehaviour
 
     public static GameObject CurrentPanel { set; get; } = null;
 
-    private static FinalVignetteCommandBuffer Vignette;
-
-    private void Start()
-    {
-        Vignette = Camera.main.GetComponent<FinalVignetteCommandBuffer>();        
-    }
 
     public static bool Hidden { private set; get; } = false;
 
@@ -28,8 +22,16 @@ public class Interface : MonoBehaviour
     {
         if (Input.GetKeyDown(Options.GameMenu))
         {
-            if (!Game.IsDefeat && !GameMenuPanel.activeInHierarchy) Open(GameMenuPanel);
-            else Close();
+            if (!Game.IsDefeat && !GameMenuPanel.gameObject.activeInHierarchy)
+            {
+                Game.Pause(true);
+                Open(GameMenuPanel);
+                GameMenuPanel.GetComponent<GameMenu>().Open();
+            }
+            else
+            {
+                Close();
+            }
         }
 
         if (Input.GetKeyDown(Options.DeveloperPanel))
@@ -62,6 +64,12 @@ public class Interface : MonoBehaviour
     } // Открыть указанное окно интерфейса
     public void Close(GameObject _panel)
     {
+        if (_panel == GameMenuPanel)
+        {
+            Game.Pause(false);
+            GameMenuPanel.GetComponent<Animator>().SetTrigger("Close");
+        }
+
         _panel.transform.SetAsFirstSibling();
         _panel.SetActive(false);
         CurrentPanel = GameObject.Find("Canvas").transform.GetChild(GameObject.Find("Canvas").transform.childCount - 1).gameObject;
@@ -70,61 +78,17 @@ public class Interface : MonoBehaviour
     {
         if (CurrentPanel != DefeatPanel)
         {
-            CurrentPanel.transform.SetAsFirstSibling();
-            CurrentPanel.SetActive(false);
-            CurrentPanel = GameObject.Find("Canvas").transform.GetChild(GameObject.Find("Canvas").transform.childCount - 1).gameObject;
+            if (CurrentPanel == GameMenuPanel)
+            {
+                Game.Pause(false);
+                GameMenuPanel.GetComponent<GameMenu>().Close();
+            }
+            else
+            {
+                CurrentPanel.transform.SetAsFirstSibling();
+                CurrentPanel.SetActive(false);
+                CurrentPanel = GameObject.Find("Canvas").transform.GetChild(GameObject.Find("Canvas").transform.childCount - 1).gameObject;
+            }
         }
-    } // Закрыть последнее окно интерфейса
-
-    /* ВИНЬЕТИРОВАНИЕ */
-    public static void PulseVignette(Color _color, float _frequency, float _time)
-    {
-
-    } // Пульсация краёв экрана заданным цветом
-    
-    public static void VignetteToElement(GameObject _object, float _radius, float _alphaChannel, float _time)
-    {
-        Vector2 _position = new Vector2(0.5f, 0.5f);
-
-        if (_object.GetComponent<RectTransform>()) _position = _object.GetComponent<RectTransform>().position;
-        else if (!_object.GetComponent<RectTransform>()) _position = Camera.main.WorldToScreenPoint(_object.transform.position);
-
-        GameObject.Find("Canvas").GetComponent<Interface>().StartCoroutine(InterpolatedVignetteToObject(_position, _radius, _alphaChannel, _time));
-    } // Виньетирование к объекту на экране
-    private static IEnumerator InterpolatedVignetteToObject(Vector2 _position, float _radius, float _alphaChannel, float _time)
-    {
-        float startTime = Time.time;
-        Vector2 centerPosition = Vignette.VignetteCenter;
-        Vector2 endPosition = new Vector2(_position.x / Screen.width, _position.y / Screen.height + 0.2f);
-        
-        Color outerColor = Vignette.VignetteOuterColor;
-        float falloffLinearity = Vignette.VignetteFalloff;
-
-        float outerDistance = Vignette.VignetteOuterValueDistance;
-        float endDistance = _radius / 10;
-
-        while (Vignette.VignetteCenter != endPosition)
-        {
-            float elapsedTime = Time.time - startTime;
-
-            Vector2 position = Vector2.Lerp(centerPosition, endPosition, elapsedTime / _time);
-            Color color = Color.Lerp(outerColor, new Color(outerColor.r, outerColor.g, outerColor.b, _alphaChannel), elapsedTime / _time);
-            float falloff = Mathf.Lerp(falloffLinearity, 10, elapsedTime / _time);
-            float radius = Mathf.Lerp(outerDistance, endDistance, elapsedTime / _time);
-
-            Vignette.VignetteCenter = position;
-            Vignette.VignetteOuterValueDistance = radius;
-            Vignette.VignetteFalloff = falloff;
-            Vignette.VignetteOuterColor = color;
-
-            yield return null;
-        }
-        GameObject.Find("Canvas").GetComponent<Interface>().StopCoroutine(InterpolatedVignetteToObject(_position, _radius, _alphaChannel, _time));
-    }
-    
-    public static void ResetVignette()
-    {
-
-    } // Сбросить виньетирование
-    
+    } // Закрыть последнее окно интерфейса    
 }

@@ -20,7 +20,11 @@ public class PlayerBar : MonoBehaviour
         if (_type == PlayerBarType.HEALTH) PlayerHealthFrozen = true;
         else PlayerManaFrozen = true;
 
-        if (Player.Hero != null && !Player.Hero.IsDead) GameObject.Find("Canvas").GetComponent<MonoBehaviour>().StartCoroutine(InterpolatedBar(_type, _value, _time));
+        if (Player.Hero != null && !Player.Hero.IsDead)
+        {
+            if (Player.Hero.Health + _value >= 0) GameObject.Find("Canvas").GetComponent<MonoBehaviour>().StartCoroutine(InterpolatedBar(_type, _value, _time));
+            else GameObject.Find("Canvas").GetComponent<MonoBehaviour>().StartCoroutine(InterpolatedBar(_type, -Player.Hero.Health, _time));
+        }
     }
     public static IEnumerator InterpolatedBar(PlayerBarType _type, float _value, float _time)
     {

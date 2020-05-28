@@ -21,24 +21,21 @@ public class Player : MonoBehaviour {
     {
         if (Input.GetKey(Options.Right))
         {
-            if (Hero.Movable && Hero.Commandable && !Hero.IsDead)
+            if (Hero.Movable && Hero.Commandable && !Hero.IsDead && !Game.IsPaused)
             {
                 Hero.Animator.ResetTrigger("Attack");
-                Hero.GetComponent<SpriteRenderer>().flipX = false;
                 Hero.Animator.SetTrigger("Walk");
                 Hero.InstanceMoveTo(Vector2.right * Hero.MovementSpeed * Time.deltaTime);
             }
-
         }
         else if (Input.GetKeyUp(Options.Right)) Hero.Idle();
 
         if (Input.GetKey(Options.Left))
         {
-            if (Hero.Movable && Hero.Commandable && !Hero.IsDead)
+            if (Hero.Movable && Hero.Commandable && !Hero.IsDead && !Game.IsPaused)
             {
                 Hero.Animator.ResetTrigger("Attack");
                 Hero.Animator.SetTrigger("Walk");
-                Hero.GetComponent<SpriteRenderer>().flipX = true;
                 Hero.InstanceMoveTo(Vector2.left * Hero.MovementSpeed * Time.deltaTime);
             }
         }
@@ -46,20 +43,35 @@ public class Player : MonoBehaviour {
 
         if (Input.GetKeyDown(Options.Jump))
         {
-            Hero.Jump();
-            if (Hero.OnWall)
+            if (!Game.IsPaused)
             {
-                Hero.OnWall = false;
-                Hero.GetComponent<Rigidbody2D>().gravityScale = 1;
-                Hero.Animator.ResetTrigger("Slide");
+                Hero.Jump();
+                if (Hero.OnWall)
+                {
+                    Hero.OnWall = false;
+                    Hero.GetComponent<Rigidbody2D>().gravityScale = 1;
+                    Hero.Animator.ResetTrigger("Slide");
+                }
             }
         }
 
         if (Input.GetMouseButtonDown(0))
         {
-            if (Hero.IsReadyToAttack && Hero.OnGround && !Hero.Animator.GetBool("Run"))
-            {
+            if (Hero.IsReadyToAttack && Hero.OnGround && !Hero.Animator.GetBool("Run") && !Game.IsPaused)
+            {                
                 StartCoroutine(AttackCooldown(Hero.AttackCooldown));
+            }
+        }
+        if (Input.GetMouseButton(1))
+        {
+            if (!Game.IsDefeat && !Game.IsPaused) CameraScript.Drag();
+        }
+        else if (Input.GetMouseButtonUp(1))
+        {
+            if (CameraScript.IsDragging)
+            {
+                CameraScript.IsDragging = false;
+                CameraScript.SmoothMoveTo(CameraScript.AttachedTarget, 0.4f);
             }
         }
 
@@ -70,9 +82,9 @@ public class Player : MonoBehaviour {
             Hero.Abilities[0].Cast();
         }
 
-        if (Input.GetKeyDown(Options.RangeAttack) && Hero.OnGround)
+        if (Input.GetKeyDown(Options.RangeAttack))
         {
-            if (Hero.Animator != null)
+            if (Hero.OnGround && !Game.IsPaused)
             {
                 Hero.Animator.ResetTrigger("Idle");
                 Hero.Animator.SetTrigger("Range Attack");
@@ -82,10 +94,14 @@ public class Player : MonoBehaviour {
 
     private IEnumerator AttackCooldown(float _cooldown)
     {
+
         Hero.Animator.ResetTrigger("Idle");
         Hero.Animator.SetTrigger("Attack");
         Hero.IsReadyToAttack = false;
         yield return new WaitForSeconds(_cooldown);
+
+        
+
         Hero.IsReadyToAttack = true;
         StopCoroutine(AttackCooldown(_cooldown));
     }

@@ -31,9 +31,9 @@ public class Game : MonoBehaviour
         PlayerBar.Update(PlayerBar.PlayerBarType.HEALTH, -Player.Hero.Health, 1f);        
         GameObject.Find("Game Manager").GetComponent<Game>().StartCoroutine(DefeatNumerator(5f));
     }
-    public static void Pause()
+    public static void Pause(bool _status)
     {
-        
+        IsPaused = _status;
     }
 
     public void Quit()
@@ -43,14 +43,12 @@ public class Game : MonoBehaviour
 
     private static IEnumerator DefeatNumerator(float _time)
     {
+        GameObject.Find("Canvas").GetComponent<Interface>().Close(GameObject.Find("Canvas").GetComponent<Interface>().GameMenuPanel);
         CameraScript.Fade(0.5f, _time);
         CameraScript.Zoom(CameraScript.CurrentZoom + 2, _time);
         yield return new WaitForSeconds(_time);
-
-        Interface.Show(false);
-        GameObject.Find("Canvas").GetComponent<Interface>().Close(GameObject.Find("Canvas").GetComponent<Interface>().GameMenuPanel);
+        Interface.Show(false);        
         GameObject.Find("Canvas").GetComponent<Interface>().Open(GameObject.Find("Canvas").GetComponent<Interface>().DefeatPanel);
-
         GameObject.Find("Game Manager").GetComponent<Game>().StopCoroutine(DefeatNumerator(_time));
     }
 }

@@ -10,6 +10,8 @@ public class EventManager : MonoBehaviour
     public static Action PlayerCreated;
     public static Action PlayerFighting;
     public static Action PlayerRevived;
+    public static Action<object[]> PlayerAttacked;
+    public static Action PlayerAttacking;
 
     public static Action<Unit> UnitDied;
 
@@ -17,4 +19,7 @@ public class EventManager : MonoBehaviour
     public static Action GameEnded;
     public static Action GameDefeat;
     public static Action GamePaused;
+
+    public static Action<GameObject> SoundPlayed;
+    public static Action<GameObject> SoundPlaying;
 }

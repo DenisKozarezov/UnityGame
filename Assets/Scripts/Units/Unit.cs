@@ -31,7 +31,7 @@ public class Unit : MonoBehaviour
     public bool OnGround;
     public bool OnWall;
     public byte SlidesCountMax = 2;
-    private byte SlidesCount { set; get; } = 0;
+    private byte SlidesCount = 0;
     
     [Header("Характеристики")]
     public byte Health;
@@ -66,6 +66,9 @@ public class Unit : MonoBehaviour
     [Header("Коллайдер для физического взаимодействия")]
     public BoxCollider2D RigidbodyCollider;
 
+    [Header("Коллайдер для атаки")]
+    public CircleCollider2D AttackCollider;
+
     public List<Order> Queue = new List<Order>();
     public Order CurrentOrder;
 
@@ -75,6 +78,11 @@ public class Unit : MonoBehaviour
     public List<Ability> Abilities = new List<Ability>();
 
     private Color DefaultColor;
+
+    public Vector3 SightVector;
+
+    private bool IsFalling = false;
+
     public void LateUpdate()
     {
         if (Queue.Count > 0)
@@ -115,11 +123,33 @@ public class Unit : MonoBehaviour
                 }
             }
         }
+
+        if (GetComponent<Rigidbody2D>().velocity.y < 0 && !OnGround)
+        {
+            if (!IsFalling) StartCoroutine(FallCoroutine());
+        }
+    }
+    private IEnumerator FallCoroutine()
+    {
+        IsFalling = true;
+        float speed = 0;
+        while (!OnGround)
+        {
+            speed = Mathf.Abs(GetComponent<Rigidbody2D>().velocity.y);
+            yield return null;
+        }
+
+        if (speed > 15)
+        {
+            Damage(this, (byte)(speed * 2.5f));
+        }
+        IsFalling = false;
+        StopCoroutine(FallCoroutine());
     }
 
     public Unit()
     {
-        Units.Add(this);        
+        Units.Add(this);     
     }
 
     public void Start()
@@ -132,16 +162,8 @@ public class Unit : MonoBehaviour
     public void MoveTo(Vector2 _direction)
     {
         if (Movable && Commandable && !IsDead)
-        {            
-            if (_direction.x - transform.position.x < 0)
-            {
-                GetComponent<SpriteRenderer>().flipX = true;          
-            }
-            else if (_direction.x - transform.position.x > 0)
-            {
-                GetComponent<SpriteRenderer>().flipX = false;
-            }
-            
+        {
+            CheckFlip(_direction);            
             StopCoroutine(Move(_direction));
             if (Animator != null)
             {
@@ -189,19 +211,12 @@ public class Unit : MonoBehaviour
         while (Vector3.Distance(transform.position, _target.transform.position) >= GetPhysicRadius(this, _target))
         {
             distance = Vector3.Distance(transform.position, _target.transform.position);
-            if (_target.transform.position.x - transform.position.x < 0)
-            {
-                GetComponent<SpriteRenderer>().flipX = true;
-            }
-            else if (_target.transform.position.x - transform.position.x > 0)
-            {
-                GetComponent<SpriteRenderer>().flipX = false;
-            }
+            CheckFlip(_target);
             transform.position = Vector3.Lerp(transform.position, _target.transform.position, MovementSpeed / distance * Time.deltaTime);
             yield return null;
         }
         Idle();
-        if (CurrentOrder.Name != "Патрулирование") CurrentOrder.Complete();
+        CurrentOrder.Complete();
         StopCoroutine(Move(_target));
     }
 
@@ -222,13 +237,13 @@ public class Unit : MonoBehaviour
             {
                 if (Animator != null)
                 {
-                    Idle();
+                    CheckFlip(Target);
+                    Animator.SetBool("Walk", false);
                     Animator.SetBool("Idle", false);
                     Animator.SetBool("Attack", true);
                 }
                 yield return new WaitForSeconds(AttackCooldown);
-            }
-            
+            }            
             else if (Vector3.Distance(transform.position, Target.transform.position) > GetAttackRadius(this, Target))
             {
                 bool flag = false;
@@ -296,6 +311,7 @@ public class Unit : MonoBehaviour
     }
     public void InstanceMoveTo(Vector2 _direction)
     {
+        CheckFlip(transform.position + new Vector3(_direction.x, _direction.y));
         if (!OnWall) transform.Translate(new Vector3(_direction.x, _direction.y, transform.position.z));
         else
         {
@@ -335,7 +351,14 @@ public class Unit : MonoBehaviour
         {
             _target.Health -= _value;
 
-            if (_target == Player.Hero) PlayerBar.Update(PlayerBar.PlayerBarType.HEALTH, -_value, 1f);
+            if (_target == Player.Hero)
+            {
+                EventManager.PlayerAttacked += method => CameraScript.PulseVignette(Color.red, 0.8f);
+                EventManager.PlayerAttacked += method => PlayerBar.Update(PlayerBar.PlayerBarType.HEALTH, -_value, 1f);
+                EventManager.PlayerAttacked.Invoke(EventManager.PlayerAttacked.Method.GetParameters());
+                EventManager.PlayerAttacked -= method => CameraScript.PulseVignette(Color.red, 0.8f);
+                EventManager.PlayerAttacked -= method => PlayerBar.Update(PlayerBar.PlayerBarType.HEALTH, -_value, 1f);
+            }
         }
         else if (_target.Health - _value <= 0)
         {         
@@ -344,13 +367,8 @@ public class Unit : MonoBehaviour
             _target.Commandable = false;
             _target.Movable = false;
             _target.CanJump = false;
-            _target.RigidbodyCollider.isTrigger = true;
-            _target.GetComponent<Rigidbody2D>().gravityScale = 0;
 
-            if (_target.Animator != null)
-            {                
-                _target.Animator.SetTrigger("Death");
-            }
+            if (_target.Animator != null) _target.Animator.SetTrigger("Death");
 
             if (_target == Player.Hero) Game.Defeat();
         }
@@ -373,7 +391,6 @@ public class Unit : MonoBehaviour
     public void Kill(Unit _target)
     {        
         _target.Damage(_target, _target.MaxHealth);
-        Remove();
     }
     public void Stop()
     {
@@ -394,6 +411,27 @@ public class Unit : MonoBehaviour
         Abilities.Remove(_ability);
     }
 
+    public void CheckFlip(Unit _target)
+    {
+        CheckFlip(_target.transform.position);
+    }
+    public void CheckFlip(Vector2 _point)
+    {
+        if (_point.x - transform.position.x < 0)
+        {
+            GetComponent<SpriteRenderer>().flipX = true;
+            SightVector = transform.position + Vector3.left;
+        }
+        else if (_point.x - transform.position.x >= 0)
+        {
+            GetComponent<SpriteRenderer>().flipX = false;
+            SightVector = transform.position + Vector3.right;
+        }
+    }
+    private void CheckFlip(Vector3 _point)
+    {
+        CheckFlip(new Vector2(_point.x, _point.y));
+    }
     private static float GetPhysicRadius(Unit _first, Unit _second)
     {
         float _firstRadius = Vector3.Distance(_first.RigidbodyCollider.bounds.center, _first.RigidbodyCollider.bounds.min);
@@ -404,7 +442,7 @@ public class Unit : MonoBehaviour
     {
         if (_first.Type == UnitType.MELEE && _second.Type == UnitType.MELEE)
         {
-            return GetPhysicRadius(_first, _second) * 1.2f;
+            return GetPhysicRadius(_first, _second) * 1.05f;
         }
         else if (_first.Type == UnitType.MELEE && _second.Type == UnitType.RANGE)
         {
@@ -451,7 +489,7 @@ public class Unit : MonoBehaviour
     /*=== СОБЫТЫЙНЫЕ ФУНКЦИИ ===*/
     public void Hit()
     {
-        if (Target != null && Vector3.Distance(transform.position, Target.transform.position) <= GetAttackRadius(this, Target) && !Target.IsDead && !IsDead)
+        if (Target != null && Vector3.Distance(transform.position, Target.transform.position) <= GetAttackRadius(this, Target) && !Target.IsDead && !IsDead && !Target.Invulnerable)
         {
             StopCoroutine(HitCoroutine(Target));
             Damage(Target, AttackDamage);

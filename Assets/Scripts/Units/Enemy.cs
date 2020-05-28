@@ -63,6 +63,10 @@ public class Enemy : MonoBehaviour
     }
 
     // ПАТРУЛИРОВАНИЕ
+    public void Start()
+    {
+        if (Player.Hero != null) Physics2D.IgnoreCollision(GetComponent<Unit>().RigidbodyCollider, Player.Hero.RigidbodyCollider);
+    }
     public void Patrol()
     {
         StopCoroutine(PatrolCoroutine());
