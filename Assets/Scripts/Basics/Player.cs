@@ -13,7 +13,7 @@ public class Player : MonoBehaviour {
     private void Awake()
     {
         Hero = GetComponent<Unit>();
-        CameraScript.AttachToUnit(Hero, CameraScript.CameraAttachmentType.BOTH);
+        //CameraScript.AttachToUnit(Hero, CameraScript.CameraAttachmentType.SMOOTH);
     }
 
     // УПРАВЛЕНИЕ ПЕРСОНАЖЕМ
@@ -62,7 +62,7 @@ public class Player : MonoBehaviour {
                 StartCoroutine(AttackCooldown(Hero.AttackCooldown));
             }
         }
-        if (Input.GetMouseButton(1))
+        /*if (Input.GetMouseButton(1))
         {
             if (!Game.IsDefeat && !Game.IsPaused) CameraScript.Drag();
         }
@@ -70,10 +70,9 @@ public class Player : MonoBehaviour {
         {
             if (CameraScript.IsDragging)
             {
-                CameraScript.IsDragging = false;
-                CameraScript.SmoothMoveTo(CameraScript.AttachedTarget, 0.4f);
+                CameraScript.ResetDrag();
             }
-        }
+        }*/
 
         if (Input.GetKeyDown(Options.Interaction))
         {

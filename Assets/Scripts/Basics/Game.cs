@@ -44,6 +44,7 @@ public class Game : MonoBehaviour
     private static IEnumerator DefeatNumerator(float _time)
     {
         GameObject.Find("Canvas").GetComponent<Interface>().Close(GameObject.Find("Canvas").GetComponent<Interface>().GameMenuPanel);
+        CameraScript.SmoothMoveTo(Player.Hero, _time);
         CameraScript.Fade(0.5f, _time);
         CameraScript.Zoom(CameraScript.CurrentZoom + 2, _time);
         yield return new WaitForSeconds(_time);

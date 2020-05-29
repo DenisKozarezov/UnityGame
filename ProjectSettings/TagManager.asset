@@ -5,9 +5,9 @@ TagManager:
   serializedVersion: 2
   tags:
   - Ground
-  - Level's Bound
   - Obstacle
   - Enemy
+  - Interactive
   layers:
   - Default
   - TransparentFX

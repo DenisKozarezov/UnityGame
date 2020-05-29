@@ -3,14 +3,36 @@ using System.Collections.Generic;
 using UnityEngine;
 using Wilberforce.FinalVignette;
 using UnityEngine.Rendering;
+using UnityEditor;
 
-[RequireComponent(typeof(CameraScript))]
+[RequireComponent(typeof(Camera))]
 public class CameraScript : MonoBehaviour
 {
     private void Awake()
     {
         NormalZoom = Camera.main.orthographicSize;
         Vignette = Camera.main.GetComponent<FinalVignetteCommandBuffer>();
+    }
+
+    private void Update()
+    {
+        if (AttachedTarget != null && AttachmentType == CameraAttachmentType.SMOOTH && !IsDragging && !AttachedTarget.IsDead)
+        {
+            float smoothCurrentX = Mathf.RoundToInt(AttachedTarget.transform.position.x);
+            if (smoothCurrentX > SmoothLastX) SmoothIsLeft = false; else if (smoothCurrentX < SmoothLastX) SmoothIsLeft = true;
+            SmoothLastX = Mathf.RoundToInt(AttachedTarget.transform.position.x);
+
+            Vector3 targetPosition;
+            if (SmoothIsLeft)
+            {
+                targetPosition = new Vector3(-SmoothOffset.x, SmoothOffset.y, transform.localPosition.z);
+            }
+            else
+            {
+                targetPosition = new Vector3(SmoothOffset.x, SmoothOffset.y, transform.localPosition.z);
+            }
+            transform.localPosition = Vector3.Lerp(transform.localPosition, targetPosition, Dumping * Time.deltaTime);
+        }
     }
 
     /* ПЕРЕДВИЖЕНИЕ КАМЕРЫ */
@@ -25,56 +47,53 @@ public class CameraScript : MonoBehaviour
     } // Плавное перемещение к точке
     public static void SmoothMoveTo(Unit _target, float _time)
     {
-        Camera.main.GetComponent<MonoBehaviour>().StartCoroutine(InterpolatedMove(_target, _time));
+        SmoothMoveTo(_target.transform.position, _time);
     } // Плавное перемещение к юниту
     private static IEnumerator InterpolatedMove(Vector3 _direction, float _time)
     {
         float startTime = Time.time;
-        Vector3 startPosition = Camera.main.transform.localPosition;
+        Vector3 startPosition = Camera.main.transform.position;
         Vector3 endPosition = _direction;
         while (Camera.main.transform.position != endPosition)
         {
             float elapsedTime = Time.time - startTime;
-            Camera.main.transform.localPosition = Vector3.Lerp(startPosition, endPosition, elapsedTime / _time);
+            Camera.main.transform.position = Vector3.Lerp(startPosition, endPosition, elapsedTime / _time);
             yield return null;
         }
         Camera.main.GetComponent<MonoBehaviour>().StopCoroutine(InterpolatedMove(_direction, _time));
     }
-    private static IEnumerator InterpolatedMove(Unit _target, float _time)
-    {
-        float startTime = Time.time;
-        Vector3 startPosition = Camera.main.transform.localPosition;
-        Vector3 endPosition = new Vector3(0, Options.CameraAttachedDepth, Camera.main.transform.localPosition.z);
-        while (Camera.main.transform.position != endPosition)
-        {
-            if (IsDragging) break;
-
-            float elapsedTime = Time.time - startTime;
-            Camera.main.transform.localPosition = Vector3.Lerp(startPosition, endPosition, elapsedTime / _time);
-            yield return null;
-        }
-        Camera.main.GetComponent<MonoBehaviour>().StopCoroutine(InterpolatedMove(_target, _time));
-    }
-
 
     /* ПРИВЯЗКА КАМЕРЫ К ЮНИТУ */
     public static Unit AttachedTarget { private set; get; } // Цель, к которой привязана камера.    
-    public static bool IsDragging { set; get; } = false; // Двигает ли игрок камеру
-    public static bool CanDrag { set; get; } = true; // Может ли игрок двигать камеру
-    public enum CameraAttachmentType { VERTICAL, HORIZONTAL, BOTH, CENTER } // Оси привязки
-    public static CameraAttachmentType AttachmentType { private set; get; } = CameraAttachmentType.HORIZONTAL;
+    public static bool IsDragging { private set; get; } = false; // Двигает ли игрок камеру
+    public static bool CanDrag { private set; get; } = true; // Может ли игрок двигать камеру
+    public static float Dumping { private set; get; } = Options.CameraDamping;
+    private static Vector2 SmoothOffset { set; get; } = Options.CameraAttachedOffset;
+    private static float SmoothLastX { set; get; }
+    private static bool SmoothIsLeft { set; get; }
+
+    public enum CameraAttachmentType { ROUGH, SMOOTH } // Типы привязки: жёсткая, плавная
+    public enum CameraDraggingType { HORIZONTAL, VERTICAL, BOTH, NONE } // Типы привязки: жёсткая, плавная
+    public static CameraAttachmentType AttachmentType { private set; get; } = CameraAttachmentType.SMOOTH;
+    public static CameraDraggingType DraggingType { private set; get; } = CameraDraggingType.BOTH;
     public static void AttachToUnit(Unit _target, CameraAttachmentType _attachmentType)
     {
         AttachedTarget = _target;        
         AttachmentType = _attachmentType;
+        switch (AttachmentType)
+        {
+            case CameraAttachmentType.SMOOTH:
+                SmoothLastX = Mathf.RoundToInt(AttachedTarget.transform.position.x);
+                break;
+        }
         Camera.main.transform.SetParent(AttachedTarget.transform);
-        Camera.main.gameObject.transform.localPosition = new Vector3(0, Options.CameraAttachedDepth, Camera.main.transform.localPosition.z);
-    }
-    public static void Detach()
+        //Camera.main.gameObject.transform.localPosition = new Vector3(0, Options.CameraAttachedDepth, Camera.main.transform.localPosition.z);
+    } // Жёсткая привязка с осью привязки
+    public static void Detach() // Открепить камеры от цели AttachedTarget
     {
         AttachedTarget = null;
         Camera.main.transform.SetParent(GameObject.Find("Level").transform.parent);
-    }
+    } 
     public static void Drag()
     {
         if (AttachedTarget != null && CanDrag)
@@ -83,20 +102,25 @@ public class CameraScript : MonoBehaviour
             float deltaX = 0, deltaY = 0;
             if (Mathf.Abs(Input.GetAxis("Mouse X")) >= Options.CameraAttachedThreshold) deltaX = Input.GetAxis("Mouse X") * Options.CameraAttachedSpeed * Time.deltaTime;
             if (Mathf.Abs(Input.GetAxis("Mouse Y")) >= Options.CameraAttachedThreshold) deltaY = Input.GetAxis("Mouse Y") * Options.CameraAttachedSpeed * Time.deltaTime;
-            switch (AttachmentType)
+            switch (DraggingType)
             {
-                case CameraAttachmentType.HORIZONTAL:
+                case CameraDraggingType.HORIZONTAL:
                     if (Mathf.Abs(Camera.main.gameObject.transform.localPosition.x + deltaX) <= 1) Camera.main.gameObject.transform.localPosition += new Vector3(deltaX, 0, 0);
                     break;
-                case CameraAttachmentType.VERTICAL:
+                case CameraDraggingType.VERTICAL:
                     if (Mathf.Abs(Camera.main.gameObject.transform.localPosition.y + deltaY) <= 1 + Options.CameraAttachedDepth) Camera.main.gameObject.transform.localPosition += new Vector3(0, deltaY, 0);
                     break;
-                case CameraAttachmentType.BOTH:
+                case CameraDraggingType.BOTH:
                     if (Mathf.Abs(Camera.main.gameObject.transform.localPosition.x + deltaX) <= 1) Camera.main.gameObject.transform.localPosition += new Vector3(deltaX, 0, 0);
                     if (Mathf.Abs(Camera.main.gameObject.transform.localPosition.y + deltaY) <= 1 + Options.CameraAttachedDepth) Camera.main.gameObject.transform.localPosition += new Vector3(0, deltaY, 0);
                     break;
             }
         }        
+    } // Перетаскивание
+    public static void ResetDrag()
+    {
+        IsDragging = false;
+        SmoothMoveTo(AttachedTarget, 0.4f);
     }
 
     

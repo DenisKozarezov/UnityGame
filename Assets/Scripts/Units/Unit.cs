@@ -139,7 +139,7 @@ public class Unit : MonoBehaviour
             yield return null;
         }
 
-        if (speed > 15)
+        if (speed > 10)
         {
             Damage(this, (byte)(speed * 2.5f));
         }

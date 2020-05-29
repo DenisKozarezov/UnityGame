@@ -18,6 +18,7 @@ public class Options : MonoBehaviour
     private static float DefaultCameraAttachedDepth { set; get; } = 0.5f;
     private static float DefaultCameraAttachedSpeed { set; get; } = 0.8f;
     private static float DefaultCameraAttachedThreshold { set; get; } = 0.3f;
+    private static float DefaultCameraDamping { set; get; } = 1.5f;
 
     // ТЕКУЩИЕ ЗНАЧЕНИЯ ОПЦИЙ
     public static KeyCode Right { set; get; } = DefaultRight;
@@ -33,6 +34,8 @@ public class Options : MonoBehaviour
     public static float CameraAttachedDepth { set; get; } = DefaultCameraAttachedDepth;
     public static float CameraAttachedSpeed { set; get; } = DefaultCameraAttachedSpeed;
     public static float CameraAttachedThreshold { set; get; } = DefaultCameraAttachedThreshold;
+    public static float CameraDamping { set; get; } = DefaultCameraDamping;
+    public static Vector2 CameraAttachedOffset { private set; get; } = new Vector2(2f, 1f);
 
     /* ------------------------------------ */
     public static bool IsKeyBeingChanging { private set; get; } = false;
@@ -194,6 +197,9 @@ public class Options : MonoBehaviour
 
         // СБРОС ИГРОВЫХ НАСТРОЕК        
         CameraAttachedSpeed = DefaultCameraAttachedSpeed;
+        CameraAttachedDepth = DefaultCameraAttachedDepth;
+        CameraAttachedThreshold = DefaultCameraAttachedThreshold;
+        CameraDamping = DefaultCameraDamping;
 
         GameOptions[0].GetComponentInChildren<Slider>().value = DefaultCameraAttachedSpeed;
         GameOptions[1].GetComponentInChildren<Scrollbar>().value = DefaultCameraAttachedThreshold;
