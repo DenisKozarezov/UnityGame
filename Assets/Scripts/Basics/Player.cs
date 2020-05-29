@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(Unit))]
@@ -9,11 +10,10 @@ public class Player : MonoBehaviour {
 
     public static Unit Hero { private set; get; }
     public GameObject FireballPrefab;
-
+    public List<Unit> Targets = new List<Unit>();
     private void Awake()
     {
         Hero = GetComponent<Unit>();
-        //CameraScript.AttachToUnit(Hero, CameraScript.CameraAttachmentType.SMOOTH);
     }
 
     // УПРАВЛЕНИЕ ПЕРСОНАЖЕМ
@@ -26,6 +26,7 @@ public class Player : MonoBehaviour {
                 Hero.Animator.ResetTrigger("Attack");
                 Hero.Animator.SetTrigger("Walk");
                 Hero.InstanceMoveTo(Vector2.right * Hero.MovementSpeed * Time.deltaTime);
+                //CreateWalk();
             }
         }
         else if (Input.GetKeyUp(Options.Right)) Hero.Idle();
@@ -37,6 +38,7 @@ public class Player : MonoBehaviour {
                 Hero.Animator.ResetTrigger("Attack");
                 Hero.Animator.SetTrigger("Walk");
                 Hero.InstanceMoveTo(Vector2.left * Hero.MovementSpeed * Time.deltaTime);
+                //CreateWalk();
             }
         }
         else if (Input.GetKeyUp(Options.Left)) Hero.Idle();
@@ -62,24 +64,12 @@ public class Player : MonoBehaviour {
                 StartCoroutine(AttackCooldown(Hero.AttackCooldown));
             }
         }
-        /*if (Input.GetMouseButton(1))
-        {
-            if (!Game.IsDefeat && !Game.IsPaused) CameraScript.Drag();
-        }
-        else if (Input.GetMouseButtonUp(1))
-        {
-            if (CameraScript.IsDragging)
-            {
-                CameraScript.ResetDrag();
-            }
-        }*/
 
-        if (Input.GetKeyDown(Options.Interaction))
+        /*if (Input.GetKeyDown(Options.Interaction))
         {
             Unit unit = (Unit)Hero.Abilities[0].Action.Target;
-            Debug.Log(Hero.Abilities[0].Name + " " + unit.name);
             Hero.Abilities[0].Cast();
-        }
+        }*/
 
         if (Input.GetKeyDown(Options.RangeAttack))
         {
@@ -93,18 +83,40 @@ public class Player : MonoBehaviour {
 
     private IEnumerator AttackCooldown(float _cooldown)
     {
+        if (Hero.IsReadyToAttack)
+        {
+            Hero.Animator.ResetTrigger("Idle");
+            Hero.Animator.SetTrigger("Attack");
+            Hero.IsReadyToAttack = false;
 
-        Hero.Animator.ResetTrigger("Idle");
-        Hero.Animator.SetTrigger("Attack");
-        Hero.IsReadyToAttack = false;
-        yield return new WaitForSeconds(_cooldown);
 
-        
-
-        Hero.IsReadyToAttack = true;
-        StopCoroutine(AttackCooldown(_cooldown));
+            yield return new WaitForSeconds(_cooldown);
+            Hero.IsReadyToAttack = true;
+            StopCoroutine(AttackCooldown(_cooldown));
+        }
     }
 
+    public void Hit()
+    {
+        if (Unit.Units.Count > 0)
+        {
+            bool flag = false;
+            foreach (Unit unit in Unit.Units)
+            {
+                if (!unit.IsDead && Vector3.Distance(Hero.transform.position, unit.transform.position) <= 2.3f && unit != Hero)
+                {
+                    unit.Hit(unit, Hero.AttackDamage);
+                    Sound.Play(Sound.PlayerSoundType.STRIKE);
+                    flag = true;
+                }
+            }
+
+            if (!flag)
+            {
+                Sound.Play(Sound.PlayerSoundType.MISSSTRIKE);
+            }
+        }
+    }
     public void Fireball()
     {
         Vector3 position = new Vector3(Hero.transform.position.x, Hero.transform.position.y + 1, Hero.transform.position.z);

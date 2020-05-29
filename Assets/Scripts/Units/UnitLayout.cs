@@ -122,7 +122,6 @@ public class UnitLayout : Editor
         }
         EditorGUILayout.PropertyField(Animator, new GUIContent("Аниматор"));
         EditorGUILayout.PropertyField(RigidbodyCollider, new GUIContent("Коллайдер"));
-
         EditorGUILayout.PropertyField(Queue, new GUIContent("Очередь приказов"));
         if (Application.isPlaying)
         {

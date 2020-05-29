@@ -5,8 +5,8 @@ using UnityEngine.UI;
 
 public class Game : MonoBehaviour
 {
-    public static bool IsDefeat { private set; get; } = false;
-    public static bool IsPaused { private set; get; } = false;
+    public static bool IsDefeat { set; get; } = false;
+    public static bool IsPaused { set; get; } = false;
 
     private void Start()
     {
@@ -24,6 +24,8 @@ public class Game : MonoBehaviour
                 }
             }
         }
+
+        Sound.Play(Sound.GameEventSoundType.LOCATION);
     }
     public static void Defeat()
     {

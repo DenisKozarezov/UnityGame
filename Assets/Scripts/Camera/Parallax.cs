@@ -17,12 +17,15 @@ public class Parallax : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        float temp = Camera.main.transform.position.x * (1 - ParallaxEffect);
-        dist = Camera.main.transform.position.x * ParallaxEffect;
+        if (!Player.Hero.IsDead)
+        {
+            float temp = Camera.main.transform.position.x * (1 - ParallaxEffect);
+            dist = Camera.main.transform.position.x * ParallaxEffect;
 
-        transform.position = new Vector3(startPos + dist, transform.position.y , transform.position.z);
+            transform.position = new Vector3(startPos + dist, transform.position.y, transform.position.z);
 
-        if (temp > startPos + length) startPos += length;
-        else if (temp < startPos - length) startPos -= length;
+            if (temp > startPos + length) startPos += length;
+            else if (temp < startPos - length) startPos -= length;
+        }
     }
 }

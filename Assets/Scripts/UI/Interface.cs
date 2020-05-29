@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Wilberforce.FinalVignette;
 
@@ -51,6 +52,12 @@ public class Interface : MonoBehaviour
     }
 
     // ФУНКЦИИ ПОЛЬЗОВАТЕЛЬСКОГО ИНТРЕФЕЙСА
+    public void LoadMainMenu()
+    {
+        Game.IsPaused = false;
+        Game.IsDefeat = false;
+        SceneManager.LoadScene(0);
+    }
     public static void Show(bool _status)
     {
         GameObject.Find("Canvas").GetComponent<Interface>().InterfacePanel.SetActive(_status);

@@ -6,10 +6,22 @@ public class Fireball : MonoBehaviour
 {
     [Range(0, 1)]
     public float ProjectileSpeed;
+    public byte Damage;
 
-    private void OnParticleCollision(GameObject other)
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        Debug.Log(other);
-        if (other.tag == "Ground") Destroy(gameObject);
+        switch (collision.tag)
+        {
+            default:
+                Destroy(this);
+                break;
+            case "Unit":
+                if (collision.GetComponent<Unit>() != Player.Hero)
+                {
+                    collision.GetComponent<Unit>().Hit(collision.GetComponent<Unit>(), Damage);
+                    Destroy(this);
+                }
+                break;
+        }
     }
 }

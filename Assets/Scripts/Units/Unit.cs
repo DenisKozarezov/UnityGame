@@ -66,9 +66,6 @@ public class Unit : MonoBehaviour
     [Header("Коллайдер для физического взаимодействия")]
     public BoxCollider2D RigidbodyCollider;
 
-    [Header("Коллайдер для атаки")]
-    public CircleCollider2D AttackCollider;
-
     public List<Order> Queue = new List<Order>();
     public Order CurrentOrder;
 
@@ -139,21 +136,19 @@ public class Unit : MonoBehaviour
             yield return null;
         }
 
-        if (speed > 10)
+        if (speed > 13)
         {
             Damage(this, (byte)(speed * 2.5f));
         }
+
+        //Sound.Play(Sound.PlayerSoundType.LANDING);
         IsFalling = false;
         StopCoroutine(FallCoroutine());
     }
 
-    public Unit()
-    {
-        Units.Add(this);     
-    }
-
     public void Start()
     {
+        Units.Add(this);
         DefaultColor = GetComponent<SpriteRenderer>().material.color;
         if (Animator != null) Idle();
     }
@@ -351,10 +346,13 @@ public class Unit : MonoBehaviour
         {
             _target.Health -= _value;
 
+            Sound.Play(Sound.PlayerSoundType.HIT);
+
             if (_target == Player.Hero)
             {
                 EventManager.PlayerAttacked += method => CameraScript.PulseVignette(Color.red, 0.8f);
                 EventManager.PlayerAttacked += method => PlayerBar.Update(PlayerBar.PlayerBarType.HEALTH, -_value, 1f);
+                Sound.Play(Sound.PlayerSoundType.HIT);
                 EventManager.PlayerAttacked.Invoke(EventManager.PlayerAttacked.Method.GetParameters());
                 EventManager.PlayerAttacked -= method => CameraScript.PulseVignette(Color.red, 0.8f);
                 EventManager.PlayerAttacked -= method => PlayerBar.Update(PlayerBar.PlayerBarType.HEALTH, -_value, 1f);
@@ -370,7 +368,12 @@ public class Unit : MonoBehaviour
 
             if (_target.Animator != null) _target.Animator.SetTrigger("Death");
 
-            if (_target == Player.Hero) Game.Defeat();
+            if (_target == Player.Hero)
+            {
+                EventManager.PlayerDied += method => Game.Defeat();
+                EventManager.PlayerDied.Invoke(EventManager.PlayerDied.Method.GetParameters());
+                EventManager.PlayerDied -= method => Game.Defeat();
+            }
         }
     }
     public void Damage(Unit _target, byte _value, float _time)
@@ -402,6 +405,14 @@ public class Unit : MonoBehaviour
     /*===============================*/
 
     /*=== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===*/
+    public static Unit GetUnitByName(string _name)
+    {
+        foreach (Unit unit in Units)
+        {
+            if (unit.name == _name) return unit;
+        }
+        return null;
+    }
     public void AddAbility(Ability _ability)
     {
         Abilities.Add(_ability);
@@ -420,7 +431,7 @@ public class Unit : MonoBehaviour
         if (_point.x - transform.position.x < 0)
         {
             GetComponent<SpriteRenderer>().flipX = true;
-            SightVector = transform.position + Vector3.left;
+            SightVector = transform.position + Vector3.left;            
         }
         else if (_point.x - transform.position.x >= 0)
         {
@@ -495,6 +506,12 @@ public class Unit : MonoBehaviour
             Damage(Target, AttackDamage);
             StartCoroutine(HitCoroutine(Target));
         }        
+    }
+    public void Hit(Unit _target, byte _value)
+    {
+        StopCoroutine(HitCoroutine(_target));
+        Damage(_target, _value);
+        StartCoroutine(HitCoroutine(_target));
     }
     private IEnumerator HitCoroutine(Unit _target)
     {
