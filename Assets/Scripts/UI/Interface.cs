@@ -54,8 +54,6 @@ public class Interface : MonoBehaviour
     // ФУНКЦИИ ПОЛЬЗОВАТЕЛЬСКОГО ИНТРЕФЕЙСА
     public void LoadMainMenu()
     {
-        Game.IsPaused = false;
-        Game.IsDefeat = false;
         SceneManager.LoadScene(0);
     }
     public static void Show(bool _status)
